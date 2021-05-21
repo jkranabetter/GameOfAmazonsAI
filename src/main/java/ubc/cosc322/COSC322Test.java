@@ -103,30 +103,17 @@ public class COSC322Test extends GamePlayer{
             this.gamegui.updateGameState( (java.util.ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR), 
                                             (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT), 
                                             (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS) );
+          
+            //these commented lines below were from what TA was showing in lab
+            //ArrayList<Integer>queenToMove = new ArrayList<Integer>;
+			//queenToMove.add(row);
+			//queenToMove.add(col);
+			//this.gameClient.sendMoveMessage(queenToMove, wheretoMove, whereToThrow);
+			////now we tell the gui about the above move
+			//this.gamegui.updateGameState(queenToMove, wheretoMove, whereToThrow);
         }
-        
-//    	switch(messageType) {
-//    		case GameMessage.GAME_STATE_BOARD:
-//    			gamegui.setGameState((ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE));
-//    			break;
-//    		case GameMessage.GAME_ACTION_START:
-//    			gamegui.setGameState((ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE));
-//    			break;
-//    		case GameMessage.GAME_ACTION_MOVE:
-//    			//ArrayList<Integer>queenToMove = new ArrayList<Integer>;
-//    			//queenToMove.add(row);
-//    			//queenToMove.add(col);
-//    			//this.gameClient.sendMoveMessage(queenToMove, wheretoMove, whereToThrow);
-//    			////now we tell the gui about the above move
-//    			//this.gamegui.updateGameState(queenToMove, wheretoMove, whereToThrow);
-//    			break;
-//    		default:
-//    			break;
-//    	}
-    	
     	return true;
     }
-    
     
     @Override
     public String userName() {
