@@ -1,5 +1,7 @@
 package ubc.cosc322;
 
+import java.util.ArrayList;
+
 public class Board {
 	// constants 
 	public static final int EMPTY = 0;
@@ -50,23 +52,75 @@ public class Board {
 		return false;
 	}
 	
-	public int[][] getQueens(int team) {
-		int[][] queens = new int[4][2];
-		int queensIdx = 0;
-		for (int i=1; i<11; i++) {
-			for (int j=1; j<11; j++) {
+	public ArrayList<ArrayList<Integer>> getQueens(int team) {
+		// create list of queens to return
+		ArrayList<ArrayList<Integer>> queens = new ArrayList<ArrayList<Integer>>();
+		
+		// loop through each position on board
+		for (int j=1; j<11; j++) {
+			for (int i=1; i<11; i++) {
 				if (this.tiles[i][j]==team) {
-					queens[queensIdx][0] = i;
-					queens[queensIdx++][1] = j;
+					// add queen to list from current position
+					ArrayList<Integer> newQueen = new ArrayList<Integer>(); // create queen to add
+					newQueen.add(j); // add row
+					newQueen.add(i); // add col
+					queens.add(newQueen); // add queen to list
 				}
-				// get out of loop early
-				if (queensIdx>=4) { break; }
+				if (queens.size()>=4) { break; } // quick escape
 			}
-			// get out of loop early
-			if (queensIdx>=4) { break; }
+			if (queens.size()>=4) { break; } // quick escape
 		}
+		
+		// return list of queens
 		return queens;
 	}
+	
+	public ArrayList<ArrayList<Integer>> getMovementOptions(ArrayList<Integer> initialPosition) {
+		// create list to hold all movement options
+		ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
+		
+		// loop from position along straight lines with direction dx,dy until obstacle, do so for each direction
+		for (int dx=1, dy=0, i=initialPosition.get(1)+dx, j=initialPosition.get(0)+dy; true; i+=dx, j+=dy) {
+			if (this.getTile(i, j)==Board.EMPTY) {
+				// add empty tile position to options and continue along current line
+				ArrayList<Integer> newTile = new ArrayList<Integer>();
+				newTile.add(j); // add row
+				newTile.add(i); // add col
+				options.add(newTile); // add to list of options
+				continue;
+			}
+			else {
+				// change dx and/or dy to rotate line CCW
+				if (dy==0) { 
+					dy = dx; 
+				}
+				else if (dx==dy) { 
+					dx = 0; 
+				}
+				else if (dx==0) { 
+					dx = -dy; 
+				}
+				else if (dx!=dy && dx!=0 && dy!=0) {
+					dy = 0;
+				}
+				// leave loop if changed dx,dy back to initial direction
+				if (dx==1 && dy==0) {
+					break;
+				}
+				// revert i and j back to starting values to begin new line
+				i = initialPosition.get(1) + dx;
+				j = initialPosition.get(0) + dy;
+			}
+		}
+		
+		// return list of options
+		return options;
+		
+		// dx and dy values for each direction iteration when moving CCW
+		// dx: 1, 1, 0,-1,-1,-1, 0, 1
+		// dy: 0, 1, 1, 1, 0,-1,-1,-1
+	}
+	
 	
 	public String toString() {
 		String output = "Current Board: \n";
