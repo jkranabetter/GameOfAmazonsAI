@@ -84,28 +84,45 @@ public class COSC322Test extends GamePlayer{
     public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
     	//This method will be called by the GameClient when it receives a game-related message
     	//from the server.
-	
+    	
     	//For a detailed description of the message types and format, 
     	//see the method GamePlayer.handleGameMessage() in the game-client-api document. 
-    	    	
-    	
-    	//warm up #2 - print out a message from the room
-    	
-    	switch(messageType) {
-    		case GameMessage.GAME_ACTION_START:
-    			gamegui.setGameState((ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE));
-    			break;
-    		case GameMessage.GAME_ACTION_MOVE:
-    			//ArrayList<Integer>queenToMove = new ArrayList<Integer>;
-    			//queenToMove.add(row);
-    			//queenToMove.add(col);
-    			//this.gameClient.sendMoveMessage(queenToMove, wheretoMove, whereToThrow);
-    			////now we tell the gui about the above move
-    			//this.gamegui.updateGameState(queenToMove, wheretoMove, whereToThrow);
-    			break;
-    		default:
-    			break;
-    	}
+	
+    	// warmup 2 - print out a message from the room
+        if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
+            // System.out.println("state board");
+            this.gamegui.setGameState( (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE) );
+        }
+        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) {
+            // System.out.println("action start");
+            this.gamegui.updateGameState(msgDetails);
+
+        }
+        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
+            // System.out.println("action move");
+            this.gamegui.updateGameState( (java.util.ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR), 
+                                            (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT), 
+                                            (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS) );
+        }
+        
+//    	switch(messageType) {
+//    		case GameMessage.GAME_STATE_BOARD:
+//    			gamegui.setGameState((ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE));
+//    			break;
+//    		case GameMessage.GAME_ACTION_START:
+//    			gamegui.setGameState((ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE));
+//    			break;
+//    		case GameMessage.GAME_ACTION_MOVE:
+//    			//ArrayList<Integer>queenToMove = new ArrayList<Integer>;
+//    			//queenToMove.add(row);
+//    			//queenToMove.add(col);
+//    			//this.gameClient.sendMoveMessage(queenToMove, wheretoMove, whereToThrow);
+//    			////now we tell the gui about the above move
+//    			//this.gamegui.updateGameState(queenToMove, wheretoMove, whereToThrow);
+//    			break;
+//    		default:
+//    			break;
+//    	}
     	
     	return true;
     }
@@ -125,7 +142,7 @@ public class COSC322Test extends GamePlayer{
 	@Override
 	public BaseGameGUI getGameGUI() {
 		// TODO Auto-generated method stub
-		return  null;
+		return  this.gamegui;
 	}
 
 	@Override
