@@ -22,6 +22,11 @@ public class Board {
 			}
 		}
 	}
+	// create board with state of passed board
+	public Board(Board board) {
+		this();
+		this.clone(board);
+	}
 	
 	// methods
 	public void setTile(int newOccupent, int x, int y) {
@@ -33,14 +38,7 @@ public class Board {
 		this.tiles[x][y] = newOccupent;
 	}
 	public void setTile(int newOccupant, ArrayList<Integer> position) {
-		// convert position to x and y value
-		int x = position.get(1), y = position.get(0);
-		// check for invalid tile
-		if (x<1 || x>11 || y<1 || y>11) {
-			// System.out.println("Can't set this tile");
-			return;
-		}
-		this.tiles[x][y] = newOccupant;
+		this.setTile(newOccupant, position.get(1), position.get(0));
 	}
 	
 	public int getTile(int x, int y) {
@@ -53,19 +51,15 @@ public class Board {
 		return this.tiles[x][y];
 	}
 	public int getTile(ArrayList<Integer> position) {
-		// convert position to x and y
-		int x = position.get(1), y = position.get(0);
-		// check for invalid tile
-		if (x<1 || x>11 || y<1 || y>11) {
-			// System.out.println("Can't get this tile");
-			return Board.OUTOFBOUNDS;
-		}
-		// return tile value
-		return this.tiles[x][y];
+		return this.getTile(position.get(1),position.get(0));
 	}
 	
-	public Board clone() {
-		return this.clone();
+	public void clone(Board original) {
+		for (int j=0; j<11; j++) {
+			for (int i=0; i<11; i++) {
+				this.setTile(original.getTile(i,j), i, j);
+			}
+		}
 	}
 	
 	public int checkWin() {
@@ -180,6 +174,7 @@ public class Board {
 		// dx: 1, 1, 0,-1,-1,-1, 0, 1
 		// dy: 0, 1, 1, 1, 0,-1,-1,-1
 	}
+	
 	
 	
 	public String toString() {
