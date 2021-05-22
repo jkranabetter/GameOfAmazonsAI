@@ -11,16 +11,25 @@ public class Board {
 	public static final int OUTOFBOUNDS = 4;
 	
 	// fields
-	private int[][] tiles; // tiles[xPos][yPos], 0 row&col are set to 0(EMPTY) but never used
+	private int[][] tiles; // tiles[xPos][yPos], 0 row&col are set to 0(EMPTY) but cant be accessed
 	
 	// constructors
 	public Board() {
 		this.tiles = new int[11][11];
 		for (int j=0; j<11; j++) {
 			for (int i=0; i<11; i++) {
-				this.tiles[i][j] = Board.EMPTY;
+				this.setTile(Board.EMPTY, i, j);
 			}
 		}
+		// add initial queen positions
+		this.setTile(Board.BLACK, 4, 10);
+		this.setTile(Board.BLACK, 7, 10);
+		this.setTile(Board.BLACK, 1, 7);
+		this.setTile(Board.BLACK, 10, 7);
+		this.setTile(Board.WHITE, 4, 1);
+		this.setTile(Board.WHITE, 7, 1);
+		this.setTile(Board.WHITE, 1, 4);
+		this.setTile(Board.WHITE, 10, 4);
 	}
 	// create board with state of passed board
 	public Board(Board board) {
@@ -31,7 +40,7 @@ public class Board {
 	// methods
 	public void setTile(int newOccupent, int x, int y) {
 		// check for invalid tile
-		if (x<1 || x>11 || y<1 || y>11) {
+		if (x<1 || x>10 || y<1 || y>10) {
 			// System.out.println("Can't set this tile");
 			return;
 		}
@@ -43,7 +52,7 @@ public class Board {
 	
 	public int getTile(int x, int y) {
 		// check for invalid tile
-		if (x<1 || x>11 || y<1 || y>11) {
+		if (x<1 || x>10 || y<1 || y>10) {
 			// System.out.println("Can't get this tile");
 			return Board.OUTOFBOUNDS;
 		}
@@ -74,6 +83,7 @@ public class Board {
 		// loop through black queens checking for movement
 		for (ArrayList<Integer> queen : queens) {
 			if ( !(this.getMovementOptions(queen).isEmpty()) ) {
+				// System.out.println("Black can move"); // TESTING
 				// this queen can move to at least one spot
 				winner = Board.BLACK;
 				// no need to check other queens
@@ -88,6 +98,7 @@ public class Board {
 		for (ArrayList<Integer> queen : queens) {
 			if ( !(this.getMovementOptions(queen).isEmpty()) ) {
 				// this queen can move to at least one spot
+				// System.out.println("White can move"); // TESTING
 				if (winner==0) {
 					// only white can move
 					winner = Board.WHITE; 
@@ -112,7 +123,7 @@ public class Board {
 		// loop through each position on board
 		for (int j=1; j<11; j++) {
 			for (int i=1; i<11; i++) {
-				if (this.tiles[i][j]==team) {
+				if (this.getTile(i,j)==team) {
 					// add queen to list from current position
 					ArrayList<Integer> newQueen = new ArrayList<Integer>(); // create queen to add
 					newQueen.add(j); // add row
@@ -132,47 +143,37 @@ public class Board {
 		// create list to hold all movement options
 		ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
 		
-		// loop from position along straight lines with direction dx,dy until obstacle, do so for each direction
-		for (int dx=1, dy=0, i=initialPosition.get(1)+dx, j=initialPosition.get(0)+dy; true; i+=dx, j+=dy) {
+		// attempt 2 at looping through all visible options for movement
+		int initialX = initialPosition.get(1), initialY = initialPosition.get(0);
+		for (int count=0, dx=1, dy=0, i=initialX+dx, j=initialY+dy; count<8; i+=dx, j+=dy) {
 			if (this.getTile(i, j)==Board.EMPTY) {
 				// add empty tile position to options and continue along current line
 				ArrayList<Integer> newTile = new ArrayList<Integer>();
 				newTile.add(j); // add row
 				newTile.add(i); // add col
 				options.add(newTile); // add to list of options
-				continue;
 			}
 			else {
-				// change dx and/or dy to rotate line CCW
-				if (dy==0) { 
-					dy = dx; 
+				// obstacle has stopped loop
+				// switch direction (change dx and dy)
+				switch (count++) {
+				case 0: dx=1; dy=1; break;
+				case 1: dx=0; dy=1; break;
+				case 2: dx=-1; dy=1; break;
+				case 3: dx=-1; dy=0; break;
+				case 4: dx=-1; dy=-1; break;
+				case 5: dx=0; dy=-1; break;
+				case 6: dx=1; dy=-1; break;
+				case 7: dx=0; dy=0; break;
 				}
-				else if (dx==dy) { 
-					dx = 0; 
-				}
-				else if (dx==0) { 
-					dx = -dy; 
-				}
-				else if (dx!=dy && dx!=0 && dy!=0) {
-					dy = 0;
-				}
-				// leave loop if changed dx,dy back to initial direction
-				if (dx==1 && dy==0) {
-					break;
-				}
-				// revert i and j back to starting values to begin new line
-				i = initialPosition.get(1) + dx;
-				j = initialPosition.get(0) + dy;
+				// set to start of line (change i and j)
+				i=initialX;
+				j=initialY;
 			}
 		}
 		
 		// return list of options
 		return options;
-		
-		// rough work for dx and dy:
-		// dx and dy values for each direction iteration when moving CCW
-		// dx: 1, 1, 0,-1,-1,-1, 0, 1
-		// dy: 0, 1, 1, 1, 0,-1,-1,-1
 	}
 	
 	public void applyMove(int team, ArrayList<ArrayList<Integer>> move) {
@@ -181,10 +182,10 @@ public class Board {
 		ArrayList<Integer> queenMoved = move.get(1);
 		ArrayList<Integer> arrow = move.get(2);
 		
-		// check validity of move - EMPTY METHOD ASSUMES TRUE
-		if ( !(this.validateMove(queenCurrent, queenMoved, arrow)) ) {
-			// System.out.println("Move not valid. You lose");
-			// return early without applying move
+		// check validity of move 
+		if ( !(this.validateMove(team, queenCurrent, queenMoved, arrow)) ) {
+			System.out.println("Move not valid. You lose");
+			// return early without applying  invalid move
 			return;
 		}
 		
@@ -194,25 +195,66 @@ public class Board {
 		this.setTile(Board.ARROW, arrow);
 	}
 	
-	// INCOMPLETE
-	/* 
-	 * things to check for validity:
-	 * queenCurrent holds your queen
-	 * queenMoved is reachable from queenCurrent
-	 * arrow is reachable from queenMoved
-	 * 
-	 */
-	public boolean validateMove(ArrayList<Integer> queenCurrent, 
+	public boolean validateMove(int team, 
+								ArrayList<Integer> queenCurrent, 
 								ArrayList<Integer> queenMoved, 
 								ArrayList<Integer> arrow) {
-		// temporarily empty method - ADD LATER
+		// create clone of board to use for testing purposes
+		Board temp = new Board(this);
+		
+		// check if queenCurrent holds your queen
+		if (temp.getTile(queenCurrent)!=team) {
+			// invalid move
+			System.out.println("No queen to move");
+			return false;
+		}
+		
+		// check if currentQueen can move to queenMoved
+		ArrayList<ArrayList<Integer>> options = temp.getMovementOptions(queenCurrent);
+		boolean valid = false;
+		for (ArrayList<Integer> option : options) {
+			if ( option.get(0)==queenMoved.get(0) && option.get(1)==queenMoved.get(1) ) {
+				// valid move
+				valid = true;
+				break;
+			}
+		}
+		if (valid==false) {
+			// move not contained in valid moves list
+			System.out.println("Queen can't move there");
+			return false;
+		}
+		
+		// move queen on temp board
+		temp.setTile(Board.EMPTY, queenCurrent);
+		temp.setTile(team, queenMoved);
+		
+		// check if arrow is reachable from queenMoved
+		ArrayList<ArrayList<Integer>> arrows = temp.getMovementOptions(queenMoved);
+		valid = false;
+		for (ArrayList<Integer> option : arrows) {
+			if ( option.get(0)==arrow.get(0) && option.get(1)==arrow.get(1) ) {
+				// valid move
+				valid = true;
+				break;
+			}
+		}
+		if (valid==false) {
+			// move not contained in valid moves list
+			System.out.println("Arrow can't be thrown there");
+			return false;
+		}
+		
+		// nothing ticked false -> valid move
 		return true;
 
 	}
 	
 	public String toString() {
-		String output = "Current Board: \n";
-		for (int j=11; j>=1; j--) {
+		String output = "\nCurrent Board: \n";
+		output += "  -   -   -   -   -   -   -   -   -   -  \n";
+		for (int j=10; j>=1; j--) {
+			output += "|";
 			for (int i=1; i<11; i++) {
 				switch (this.tiles[i][j]) {
 				case Board.EMPTY: output += "   "; break;
@@ -220,8 +262,10 @@ public class Board {
 				case Board.WHITE: output += " W "; break;
 				case Board.ARROW: output += " A "; break;
 				}
+				output += "|";
 			}
 			output += "\n";
+			output += "  -   -   -   -   -   -   -   -   -   -  \n";
 		}
 		return output;
 	}

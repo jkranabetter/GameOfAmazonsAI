@@ -31,18 +31,18 @@ public class RandomAI {
 	}
 	
 	public void getAllMoves() {
-		// erase old move options
-		this.moves = new ArrayList<ArrayList<ArrayList<Integer>>>();
 		// get your queens from board
-		ArrayList<ArrayList<Integer>> myQueens = board.getQueens(this.team);
+		ArrayList<ArrayList<Integer>> myQueens = testBoard.getQueens(this.team);
 		// loop through queens finding movement options
 		for (ArrayList<Integer> queenCurrent : myQueens) {
 			// get each queens direct movements
-			ArrayList<ArrayList<Integer>> queenMoves = board.getMovementOptions(queenCurrent);
+			ArrayList<ArrayList<Integer>> queenMoves = testBoard.getMovementOptions(queenCurrent);
+			// erase queen from old location on testboard
+			testBoard.setTile(Board.EMPTY, queenCurrent);
 			// loop through each position to move to and find all possible arrow positions
 			for (ArrayList<Integer> queenMoved : queenMoves) {
 				// get all possible arrow positions for each of queen's movement options
-				ArrayList<ArrayList<Integer>> arrows = board.getMovementOptions(queenMoved);
+				ArrayList<ArrayList<Integer>> arrows = testBoard.getMovementOptions(queenMoved);
 				// loop through all arrow positions
 				for (ArrayList<Integer> arrow : arrows) {
 					// create move for queen
@@ -54,19 +54,24 @@ public class RandomAI {
 					this.moves.add(move);
 				}
 			}
+			// add queen back to old location
+			testBoard.setTile(this.team, queenCurrent);
 		}
+		System.out.println(this.moves.size() + " moves available");
 	}
 	
 	public ArrayList<ArrayList<Integer>> getRandomMove() {
 		// get random idx
-		int randomIdx = (int) Math.random()*(this.moves.size());
+		int randomIdx = (int) ( Math.random() * (this.moves.size()) );
 		return this.moves.get(randomIdx);
 	}
 	
-	public ArrayList<ArrayList<Integer>> makeMove(Board board) {
+	public void makeMove(Board board) {
 		this.updateBoard(board);
+		this.moves.clear();
 		this.getAllMoves();
-		return this.getRandomMove();
+		board.applyMove(this.team, this.getRandomMove());
+		// board.applyMove(this.team, this.moves.get(0)); // TESTING
 	}
 	
 	
