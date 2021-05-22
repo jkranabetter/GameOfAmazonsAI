@@ -2,9 +2,8 @@ package ubc.cosc322;
 
 public class RandomAI {
 	// constants
-	public static final int BLACKTEAM = 1;
-	public static final int WHITETEAM = 2;
-	public static final int SPECTATOR = 3;
+	public static final int BLACK = 1;
+	public static final int WHITE = 2;
 	
 	// fields
 	int team;

@@ -32,8 +32,29 @@ public class Board {
 		}
 		this.tiles[x][y] = newOccupent;
 	}
+	public void setTile(int newOccupant, ArrayList<Integer> position) {
+		// convert position to x and y value
+		int x = position.get(1), y = position.get(0);
+		// check for invalid tile
+		if (x<1 || x>11 || y<1 || y>11) {
+			// System.out.println("Can't set this tile");
+			return;
+		}
+		this.tiles[x][y] = newOccupant;
+	}
 	
 	public int getTile(int x, int y) {
+		// check for invalid tile
+		if (x<1 || x>11 || y<1 || y>11) {
+			// System.out.println("Can't get this tile");
+			return Board.OUTOFBOUNDS;
+		}
+		// return tile value
+		return this.tiles[x][y];
+	}
+	public int getTile(ArrayList<Integer> position) {
+		// convert position to x and y
+		int x = position.get(1), y = position.get(0);
 		// check for invalid tile
 		if (x<1 || x>11 || y<1 || y>11) {
 			// System.out.println("Can't get this tile");
@@ -47,9 +68,47 @@ public class Board {
 		return this.clone();
 	}
 	
-	public boolean checkWin() {
-		// dont know how to check this yet
-		return false;
+	public int checkWin() {
+		// loop through all queens, checking to see if all can't move
+		
+		// variables
+		int winner = 0; // 0==no win, 1==black win, 2==white win, no win by default
+		
+		// get black queens
+		ArrayList<ArrayList<Integer>> queens = this.getQueens(Board.BLACK);
+		
+		// loop through black queens checking for movement
+		for (ArrayList<Integer> queen : queens) {
+			if ( !(this.getMovementOptions(queen).isEmpty()) ) {
+				// this queen can move to at least one spot
+				winner = Board.BLACK;
+				// no need to check other queens
+				break;
+			}
+		}
+		
+		// get white queens
+		queens = this.getQueens(Board.WHITE);
+		
+		// loop through white queens checking for movement
+		for (ArrayList<Integer> queen : queens) {
+			if ( !(this.getMovementOptions(queen).isEmpty()) ) {
+				// this queen can move to at least one spot
+				if (winner==0) {
+					// only white can move
+					winner = Board.WHITE; 
+				}
+				else if (winner==Board.BLACK) { 
+					// both can move
+					winner = 0; 
+				}
+				// no need to check other queens
+				break;
+			}
+		}
+		
+		// return winner value
+		return winner;
 	}
 	
 	public ArrayList<ArrayList<Integer>> getQueens(int team) {
@@ -66,9 +125,9 @@ public class Board {
 					newQueen.add(i); // add col
 					queens.add(newQueen); // add queen to list
 				}
-				if (queens.size()>=4) { break; } // quick escape
+				if (queens.size()>=4) { break; } // quick escape, all queens accounted for
 			}
-			if (queens.size()>=4) { break; } // quick escape
+			if (queens.size()>=4) { break; } // quick escape, all queens accounted for
 		}
 		
 		// return list of queens
@@ -116,6 +175,7 @@ public class Board {
 		// return list of options
 		return options;
 		
+		// rough work for dx and dy:
 		// dx and dy values for each direction iteration when moving CCW
 		// dx: 1, 1, 0,-1,-1,-1, 0, 1
 		// dy: 0, 1, 1, 1, 0,-1,-1,-1
