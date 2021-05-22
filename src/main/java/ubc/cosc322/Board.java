@@ -175,7 +175,40 @@ public class Board {
 		// dy: 0, 1, 1, 1, 0,-1,-1,-1
 	}
 	
+	public void applyMove(int team, ArrayList<ArrayList<Integer>> move) {
+		// split move up into it's 3 parts
+		ArrayList<Integer> queenCurrent = move.get(0);
+		ArrayList<Integer> queenMoved = move.get(1);
+		ArrayList<Integer> arrow = move.get(2);
+		
+		// check validity of move - EMPTY METHOD ASSUMES TRUE
+		if ( !(this.validateMove(queenCurrent, queenMoved, arrow)) ) {
+			// System.out.println("Move not valid. You lose");
+			// return early without applying move
+			return;
+		}
+		
+		// make changes to board using move inputs
+		this.setTile(Board.EMPTY, queenCurrent);
+		this.setTile(team, queenMoved);
+		this.setTile(Board.ARROW, arrow);
+	}
 	
+	// INCOMPLETE
+	/* 
+	 * things to check for validity:
+	 * queenCurrent holds your queen
+	 * queenMoved is reachable from queenCurrent
+	 * arrow is reachable from queenMoved
+	 * 
+	 */
+	public boolean validateMove(ArrayList<Integer> queenCurrent, 
+								ArrayList<Integer> queenMoved, 
+								ArrayList<Integer> arrow) {
+		// temporarily empty method - ADD LATER
+		return true;
+
+	}
 	
 	public String toString() {
 		String output = "Current Board: \n";
