@@ -3,17 +3,19 @@ package ubc.cosc322;
 import java.util.ArrayList;
 
 public class Board {
-	// constants 
+	// constant values for tile to hold
 	public static final int EMPTY = 0;
 	public static final int BLACK = 1;
 	public static final int WHITE = 2;
 	public static final int ARROW = 3;
 	public static final int OUTOFBOUNDS = 4;
 	
-	// fields
+	// 2d array holding integers representing what is occupying each tile
 	private int[][] tiles; // tiles[xPos][yPos], 0 row&col are set to 0(EMPTY) but cant be accessed
 	
 	// constructors
+	
+	// create board with default game setup
 	public Board() {
 		this.tiles = new int[11][11];
 		for (int j=0; j<11; j++) {
@@ -31,25 +33,30 @@ public class Board {
 		this.setTile(Board.WHITE, 1, 4);
 		this.setTile(Board.WHITE, 10, 4);
 	}
-	// create board with state of passed board
+	// create board by copying the layout of a passed board
 	public Board(Board board) {
 		this();
 		this.clone(board);
 	}
 	
 	// methods
-	public void setTile(int newOccupent, int x, int y) {
+	
+	// change the value of a tile (specified by 2 separate integers) to passed newOccupant value
+	public void setTile(int newOccupant, int x, int y) {
 		// check for invalid tile
 		if (x<1 || x>10 || y<1 || y>10) {
 			// System.out.println("Can't set this tile");
 			return;
 		}
-		this.tiles[x][y] = newOccupent;
+		this.tiles[x][y] = newOccupant;
 	}
+	
+	// change the value of a tile (specified by arraylist of 2 integers) to passed newOccupant value
 	public void setTile(int newOccupant, ArrayList<Integer> position) {
 		this.setTile(newOccupant, position.get(1), position.get(0));
 	}
 	
+	// determine value of a tile specified by 2 separate integers
 	public int getTile(int x, int y) {
 		// check for invalid tile
 		if (x<1 || x>10 || y<1 || y>10) {
@@ -59,10 +66,13 @@ public class Board {
 		// return tile value
 		return this.tiles[x][y];
 	}
+	
+	// determine value of a tile specified by arraylist of 2 integers
 	public int getTile(ArrayList<Integer> position) {
 		return this.getTile(position.get(1),position.get(0));
 	}
 	
+	// copy each tile from a passed board to this board
 	public void clone(Board original) {
 		for (int j=0; j<11; j++) {
 			for (int i=0; i<11; i++) {
@@ -71,6 +81,7 @@ public class Board {
 		}
 	}
 	
+	// determine if either player can no longer make any more moves
 	public int checkWin() {
 		// loop through all queens, checking to see if all can't move
 		
@@ -116,6 +127,7 @@ public class Board {
 		return winner;
 	}
 	
+	// get locations of all passed team's queens 
 	public ArrayList<ArrayList<Integer>> getQueens(int team) {
 		// create list of queens to return
 		ArrayList<ArrayList<Integer>> queens = new ArrayList<ArrayList<Integer>>();
@@ -139,6 +151,7 @@ public class Board {
 		return queens;
 	}
 	
+	// get all valid tile locations to move directly to (for queens and arrows) from passed position
 	public ArrayList<ArrayList<Integer>> getMovementOptions(ArrayList<Integer> initialPosition) {
 		// create list to hold all movement options
 		ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
@@ -176,6 +189,7 @@ public class Board {
 		return options;
 	}
 	
+	// take passed move from AI and apply it to board 
 	public void applyMove(int team, ArrayList<ArrayList<Integer>> move) {
 		// split move up into it's 3 parts
 		ArrayList<Integer> queenCurrent = move.get(0);
@@ -195,6 +209,7 @@ public class Board {
 		this.setTile(Board.ARROW, arrow);
 	}
 	
+	// check validity of a player's chosen move before applying it
 	public boolean validateMove(int team, 
 								ArrayList<Integer> queenCurrent, 
 								ArrayList<Integer> queenMoved, 
@@ -250,6 +265,7 @@ public class Board {
 
 	}
 	
+	// output board as string so that it can be printed to console/file
 	public String toString() {
 		String output = "\nCurrent Board: \n";
 		output += "  -   -   -   -   -   -   -   -   -   -  \n";

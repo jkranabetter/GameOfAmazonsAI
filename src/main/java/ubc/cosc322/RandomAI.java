@@ -8,28 +8,36 @@ public class RandomAI {
 	public static final int WHITE = 2;
 	
 	// fields
-	int team; // holds BLACK or WHITE value for differentiation
-	Board board; // connection to true board
+	int team; // holds BLACK or WHITE value so that AI can play as either team
+	Board board; // pointer to true board
 	Board testBoard; // clone of board to use for calculating moves
 	ArrayList<ArrayList<ArrayList<Integer>>> moves; // list of moves, move = list of positions, position = list of ints
+	ArrayList<ArrayList<Integer>> chosenMove; // hold RandomAI's chosen move from list of moves
 	
 	// constructors
+	
+	// create new AI to play as passed team on passed board
 	public RandomAI(int team, Board board) {
 		this.team = team;
 		this.board = board;
 		this.testBoard = new Board(this.board);
 		this.moves = new ArrayList<ArrayList<ArrayList<Integer>>>();
 	}
+	
+	// create new AI to play as passed team on new board
 	public RandomAI(int team) {
 		this(team, new Board());
 	}
 	
 	// methods
+	
+	// update both board and testBoard to current state of passed board
 	public void updateBoard(Board board) {
-		this.board = board;
+		this.board = board; // shouldn't be doing anything really but here just in case
 		this.testBoard.clone(this.board);
 	}
 	
+	// get every possible move this AI could make on this turn
 	public void getAllMoves() {
 		// get your queens from board
 		ArrayList<ArrayList<Integer>> myQueens = testBoard.getQueens(this.team);
@@ -57,21 +65,23 @@ public class RandomAI {
 			// add queen back to old location
 			testBoard.setTile(this.team, queenCurrent);
 		}
-		System.out.println(this.moves.size() + " moves available");
 	}
 	
-	public ArrayList<ArrayList<Integer>> getRandomMove() {
+	// select a move at random from ai's list of moves and keep it in ai's chosenMove field
+	public void getRandomMove() {
 		// get random idx
 		int randomIdx = (int) ( Math.random() * (this.moves.size()) );
-		return this.moves.get(randomIdx);
+		this.chosenMove = this.moves.get(randomIdx);
 	}
 	
+	// have ai take state of board and apply its chosen move onto it (DO TURN)
 	public void makeMove(Board board) {
 		this.updateBoard(board);
-		this.moves.clear();
+		this.moves.clear(); // clear moves from previous turn
 		this.getAllMoves();
-		board.applyMove(this.team, this.getRandomMove());
-		// board.applyMove(this.team, this.moves.get(0)); // TESTING
+		this.getRandomMove();
+		System.out.println(this.moves.size() + " moves available"); // TESTING
+		board.applyMove(this.team, this.chosenMove);
 	}
 	
 	

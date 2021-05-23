@@ -14,8 +14,11 @@ public class Main {
 		System.out.println(board);
 		
 		// create player tracker
-		int player = Board.BLACK; // switches from black to white to black till win
+		int player = Board.BLACK; // switches from black to white and back untill win
 		int turnCount = 0; // count iterations
+		
+		// timing fields
+		long start, end, duration;
 		
 		// loop through gameplay
 		while ( board.checkWin()==0 ) {
@@ -26,6 +29,8 @@ public class Main {
 			case Board.BLACK: System.out.println("Black is moving..."); break;
 			case Board.WHITE: System.out.println("White is moving..."); break;
 			}
+			// get turn start time
+			start = System.nanoTime();
 			// have ai make move
 			if (player==Board.BLACK) {
 				aiBlack.makeMove(board);
@@ -33,6 +38,11 @@ public class Main {
 			else {
 				aiWhite.makeMove(board);
 			}
+			// get turn end time
+			end = System.nanoTime();
+			// calculate turn duration
+			duration = end - start;
+			System.out.println("AI took " + (duration) + " nanoseconds to make decision.");
 			// display new board
 			System.out.println(board);
 			// switch player
