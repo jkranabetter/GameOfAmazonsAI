@@ -72,10 +72,16 @@ public class COSC322Test extends GamePlayer{
     	
     	System.out.println(gameClient.getRoomList());
     	
-    	//warm up #1
-    	List<Room> x = gameClient.getRoomList();
-
-    	gameClient.joinRoom(x.get(0).getName());
+//    	//warm up #1
+//    	List<Room> x = gameClient.getRoomList();
+//
+//    	gameClient.joinRoom(x.get(0).getName());
+    	
+    	// warmup 2
+    	userName = gameClient.getUserName();
+    	if(gamegui != null) {
+    	gamegui.setRoomInformation(gameClient.getRoomList());
+    	}    	
     	
     }
     
