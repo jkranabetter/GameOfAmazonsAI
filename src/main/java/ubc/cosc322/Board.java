@@ -93,7 +93,7 @@ public class Board {
 		
 		// loop through black queens checking for movement
 		for (ArrayList<Integer> queen : queens) {
-			if ( !(this.getMovementOptions(queen).isEmpty()) ) {
+			if ( !(this.getDirectTiles(queen).isEmpty()) ) {
 				// System.out.println("Black can move"); // TESTING
 				// this queen can move to at least one spot
 				winner = Board.BLACK;
@@ -107,7 +107,7 @@ public class Board {
 		
 		// loop through white queens checking for movement
 		for (ArrayList<Integer> queen : queens) {
-			if ( !(this.getMovementOptions(queen).isEmpty()) ) {
+			if ( !(this.getDirectTiles(queen).isEmpty()) ) {
 				// this queen can move to at least one spot
 				// System.out.println("White can move"); // TESTING
 				if (winner==0) {
@@ -127,15 +127,15 @@ public class Board {
 		return winner;
 	}
 	
-	// get locations of all passed team's queens 
-	public ArrayList<ArrayList<Integer>> getQueens(int team) {
+	// get locations of all passed player's queens 
+	public ArrayList<ArrayList<Integer>> getQueens(int player) {
 		// create list of queens to return
 		ArrayList<ArrayList<Integer>> queens = new ArrayList<ArrayList<Integer>>();
 		
 		// loop through each position on board
 		for (int j=1; j<11; j++) {
 			for (int i=1; i<11; i++) {
-				if (this.getTile(i,j)==team) {
+				if (this.getTile(i,j)==player) {
 					// add queen to list from current position
 					ArrayList<Integer> newQueen = new ArrayList<Integer>(); // create queen to add
 					newQueen.add(j); // add row
@@ -152,11 +152,11 @@ public class Board {
 	}
 	
 	// get all valid tile locations to move directly to (for queens and arrows) from passed position
-	public ArrayList<ArrayList<Integer>> getMovementOptions(ArrayList<Integer> initialPosition) {
+	public ArrayList<ArrayList<Integer>> getDirectTiles(ArrayList<Integer> initialPosition) {
 		// create list to hold all movement options
 		ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
 		
-		// attempt 2 at looping through all visible options for movement
+		// loop through all visible options for movement
 		int initialX = initialPosition.get(1), initialY = initialPosition.get(0);
 		for (int count=0, dx=1, dy=0, i=initialX+dx, j=initialY+dy; count<8; i+=dx, j+=dy) {
 			if (this.getTile(i, j)==Board.EMPTY) {
@@ -189,28 +189,28 @@ public class Board {
 		return options;
 	}
 	
-	// take passed move from AI and apply it to board 
-	public void applyMove(int team, ArrayList<ArrayList<Integer>> move) {
-		// split move up into it's 3 parts
-		ArrayList<Integer> queenCurrent = move.get(0);
-		ArrayList<Integer> queenMoved = move.get(1);
-		ArrayList<Integer> arrow = move.get(2);
+	// take passed action from AI and apply it to board 
+	public void applyAction(int player, ArrayList<ArrayList<Integer>> action) {
+		// split action up into it's 3 parts
+		ArrayList<Integer> queenCurrent = action.get(0);
+		ArrayList<Integer> queenMoved = action.get(1);
+		ArrayList<Integer> arrow = action.get(2);
 		
-		// check validity of move 
-		if ( !(this.validateMove(team, queenCurrent, queenMoved, arrow)) ) {
-			System.out.println("Move not valid. You lose");
-			// return early without applying  invalid move
+		// check validity of action 
+		if ( !(this.validateAction(player, queenCurrent, queenMoved, arrow)) ) {
+			System.out.println("Action not valid. You lose");
+			// return early without applying invalid move
 			return;
 		}
 		
 		// make changes to board using move inputs
 		this.setTile(Board.EMPTY, queenCurrent);
-		this.setTile(team, queenMoved);
+		this.setTile(player, queenMoved);
 		this.setTile(Board.ARROW, arrow);
 	}
 	
-	// check validity of a player's chosen move before applying it
-	public boolean validateMove(int team, 
+	// check validity of a player's chosen action before applying it
+	public boolean validateAction(int player, 
 								ArrayList<Integer> queenCurrent, 
 								ArrayList<Integer> queenMoved, 
 								ArrayList<Integer> arrow) {
@@ -218,14 +218,14 @@ public class Board {
 		Board temp = new Board(this);
 		
 		// check if queenCurrent holds your queen
-		if (temp.getTile(queenCurrent)!=team) {
-			// invalid move
+		if (temp.getTile(queenCurrent)!=player) {
+			// invalid action
 			System.out.println("No queen to move");
 			return false;
 		}
 		
 		// check if currentQueen can move to queenMoved
-		ArrayList<ArrayList<Integer>> options = temp.getMovementOptions(queenCurrent);
+		ArrayList<ArrayList<Integer>> options = temp.getDirectTiles(queenCurrent);
 		boolean valid = false;
 		for (ArrayList<Integer> option : options) {
 			if ( option.get(0)==queenMoved.get(0) && option.get(1)==queenMoved.get(1) ) {
@@ -235,17 +235,17 @@ public class Board {
 			}
 		}
 		if (valid==false) {
-			// move not contained in valid moves list
+			// action not contained in valid moves list
 			System.out.println("Queen can't move there");
 			return false;
 		}
 		
 		// move queen on temp board
 		temp.setTile(Board.EMPTY, queenCurrent);
-		temp.setTile(team, queenMoved);
+		temp.setTile(player, queenMoved);
 		
 		// check if arrow is reachable from queenMoved
-		ArrayList<ArrayList<Integer>> arrows = temp.getMovementOptions(queenMoved);
+		ArrayList<ArrayList<Integer>> arrows = temp.getDirectTiles(queenMoved);
 		valid = false;
 		for (ArrayList<Integer> option : arrows) {
 			if ( option.get(0)==arrow.get(0) && option.get(1)==arrow.get(1) ) {
@@ -255,7 +255,7 @@ public class Board {
 			}
 		}
 		if (valid==false) {
-			// move not contained in valid moves list
+			// action not contained in valid actions list
 			System.out.println("Arrow can't be thrown there");
 			return false;
 		}
