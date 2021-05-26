@@ -3,19 +3,22 @@ package ubc.cosc322;
 import java.util.ArrayList;
 
 public class Board {
-	// constant values for tile to hold
-	public static final int EMPTY = 0;
-	public static final int BLACK = 1;
-	public static final int WHITE = 2;
-	public static final int ARROW = 3;
-	public static final int OUTOFBOUNDS = 4;
+	//-- CONSTANTS --//
+	public static final int EMPTY = 0; // empty space
+	public static final int BLACK = 1; // black queen/player
+	public static final int WHITE = 2; // white queen/player
+	public static final int ARROW = 3; // arrow
+	public static final int OUTOFBOUNDS = 4; // invalid value
 	
-	// 2d array holding integers representing what is occupying each tile
-	private int[][] tiles; // tiles[row][col], 0 row&col are set to 0(EMPTY) but cant be accessed
+	//-- FIELDS --//
 	
-	// constructors
+	private int[][] tiles; // 2D array to hold value of each tile, [row][col], 0 row and col are ignored
 	
-	// create board with default game setup
+	//-- CONSTRUCTORS --//
+	
+	/**
+	 * create board with default initial state
+	 */
 	public Board() {
 		this.tiles = new int[11][11];
 		for (int j=0; j<11; j++) {
@@ -33,30 +36,61 @@ public class Board {
 		this.setTile(Board.WHITE, 4, 1);
 		this.setTile(Board.WHITE, 4, 10);
 	}
-	// create board by copying the layout of a passed board
+	
+	/**
+	 * create new board with state of passed board
+	 * @param original board to copy state of
+	 */
 	public Board(Board original) {
 		this();
 		this.clone(original);
 	}
 	
-	// methods
+	//-- METHODS --//
 	
-	// change the value of a tile (specified by 2 separate integers) to passed newOccupant value
+	/**
+	 * update this board to state of passed board
+	 * @param original board to copy state of
+	 */
+	public void clone(Board original) {
+		for (int j=0; j<11; j++) {
+			for (int i=0; i<11; i++) {
+				this.setTile(original.getTile(j,i), j, i);
+			}
+		}
+	}
+	
+	/**
+	 * set state of specified tile
+	 * @param newOccupant state to set tile to
+	 * @param row row of tile
+	 * @param col col of tile
+	 */
 	public void setTile(int newOccupant, int row, int col) {
 		// check for invalid tile
 		if (row<1 || row>10 || col<1 || col>10) {
 			// System.out.println("Can't set this tile");
 			return;
 		}
+		// set tile to new value
 		this.tiles[row][col] = newOccupant;
 	}
 	
-	// change the value of a tile (specified by arraylist of 2 integers) to passed newOccupant value
+	/**
+	 * set state of specified tile
+	 * @param newOccupant state to set tile to
+	 * @param position arrayList containing row and col of tile
+	 */
 	public void setTile(int newOccupant, ArrayList<Integer> position) {
 		this.setTile(newOccupant, position.get(0), position.get(1));
 	}
 	
-	// determine value of a tile specified by 2 separate integers
+	/**
+	 * get state of specified tile
+	 * @param row row of tile
+	 * @param col col of tile
+	 * @return value of tile
+	 */
 	public int getTile(int row, int col) {
 		// check for invalid tile
 		if (row<1 || row>10 || col<1 || col>10) {
@@ -67,21 +101,20 @@ public class Board {
 		return this.tiles[row][col];
 	}
 	
-	// determine value of a tile specified by arraylist of 2 integers
+	/**
+	 * get state of specified tile
+	 * @param position arrayList containing row and col of tile
+	 * @return value of tile
+	 */
 	public int getTile(ArrayList<Integer> position) {
 		return this.getTile(position.get(0),position.get(1));
 	}
 	
-	// copy each tile from a passed board to this board
-	public void clone(Board original) {
-		for (int j=0; j<11; j++) {
-			for (int i=0; i<11; i++) {
-				this.setTile(original.getTile(j,i), j, i);
-			}
-		}
-	}
-	
-	// replacing checkWin, returns 0 if game not done, otherwise passed player returned
+	/**
+	 * determine if passed player has no moves left(ie lost game)
+	 * @param player to check 
+	 * @return 0 not lost, passed player if passed player lost
+	 */
 	public int checkLose(int player) {
 		// get queens of passed player
 		ArrayList<ArrayList<Integer>> queens = this.getQueens(player);
@@ -102,7 +135,11 @@ public class Board {
 		return player;
 	}	
 	
-	// determine if either player can no longer make any more moves
+	/**
+	 * determine if either player has won the game
+	 * has been replaced by checkLose(player) method
+	 * @return 0 if no win, Board.WHITE if white wins, Board.BLACK if black wins
+	 */
 	public int checkWin() {
 		// loop through all queens, checking to see if all can't move
 		
@@ -148,7 +185,11 @@ public class Board {
 		return winner;
 	}
 	
-	// get locations of all passed player's queens 
+	/**
+	 * get a list of positions of passed players queens
+	 * @param player colour of queens to get positions of
+	 * @return list of positions of queens (length == 4)
+	 */
 	public ArrayList<ArrayList<Integer>> getQueens(int player) {
 		// create list of queens to return
 		ArrayList<ArrayList<Integer>> queens = new ArrayList<ArrayList<Integer>>();
@@ -172,45 +213,54 @@ public class Board {
 		return queens;
 	}
 	
-	// get all valid tile locations to move directly to (for queens and arrows) from passed position
+	/**
+	 * get list of all directly reachable tiles from passed position
+	 * @param initialPosition reference position to use for search
+	 * @return list of directly reachable tiles
+	 */
 	public ArrayList<ArrayList<Integer>> getDirectTiles(ArrayList<Integer> initialPosition) {
-		// create list to hold all movement options
-		ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
+		// create list to hold all direct tiles
+		ArrayList<ArrayList<Integer>> directTiles = new ArrayList<ArrayList<Integer>>();
 		
-		// loop through all visible options for movement
-		int initialX = initialPosition.get(1), initialY = initialPosition.get(0);
-		for (int count=0, dx=1, dy=0, i=initialX+dx, j=initialY+dy; count<8; i+=dx, j+=dy) {
+		// loop through all directly reachable tiles
+		for (int count=0, dx=1, dy=0, j=initialPosition.get(0)+dy, i=initialPosition.get(1)+dx; count<8; j+=dy, i+=dx) {
+			// check for empty tile
 			if (this.getTile(j,i)==Board.EMPTY) {
-				// add empty tile position to options and continue along current line
+				// add tile to list
 				ArrayList<Integer> newTile = new ArrayList<Integer>();
-				newTile.add(j); // add row
-				newTile.add(i); // add col
-				options.add(newTile); // add to list of options
+				newTile.add(j);
+				newTile.add(i); 
+				directTiles.add(newTile); 
+				
+				// continue to next tile in line
+				continue;
 			}
-			else {
-				// obstacle has stopped loop
-				// switch direction (change dx and dy)
-				switch (count++) {
-				case 0: dx=1; dy=1; break;
-				case 1: dx=0; dy=1; break;
-				case 2: dx=-1; dy=1; break;
-				case 3: dx=-1; dy=0; break;
-				case 4: dx=-1; dy=-1; break;
-				case 5: dx=0; dy=-1; break;
-				case 6: dx=1; dy=-1; break;
-				case 7: dx=0; dy=0; break; // not necessary b/c leaving loop 
-				}
-				// set to start of line (change i and j)
-				i = initialX;
-				j = initialY;
+			// switch direction (change dx and dy)
+			switch (count++) {
+			case 0: dx=1; dy=1; break;
+			case 1: dx=0; dy=1; break;
+			case 2: dx=-1; dy=1; break;
+			case 3: dx=-1; dy=0; break;
+			case 4: dx=-1; dy=-1; break;
+			case 5: dx=0; dy=-1; break;
+			case 6: dx=1; dy=-1; break;
+			case 7: dx=0; dy=0; break; // not necessary b/c leaving loop 
 			}
+			
+			// reset to start of new line (change i and j)
+			i = initialPosition.get(1);
+			j = initialPosition.get(0);
 		}
 		
-		// return list of options
-		return options;
+		// return list of directTiles
+		return directTiles;
 	}
-	
-	// take passed action from AI and apply it to board 
+	 
+	/**
+	 * update board with passed action
+	 * @param player player doing action
+	 * @param action list of positions representing player action
+	 */
 	public void applyAction(int player, ArrayList<ArrayList<Integer>> action) {
 		// split action up into it's 3 parts
 		ArrayList<Integer> queenCurrent = action.get(0);
@@ -230,18 +280,25 @@ public class Board {
 		this.setTile(Board.ARROW, arrow);
 	}
 	
-	// check validity of a player's chosen action before applying it
-	public boolean validateAction(int player, 
-								ArrayList<Integer> queenCurrent, 
-								ArrayList<Integer> queenMoved, 
-								ArrayList<Integer> arrow) {
+	/**
+	 * check validity of passed action by passed player
+	 * @param player player doing action
+	 * @param queenCurrent current position of queen to move
+	 * @param queenMoved position to move queen to
+	 * @param arrow position to throw arrow
+	 * @return true if valid, false if invalid
+	 */
+	public boolean validateAction(	int player, 
+									ArrayList<Integer> queenCurrent, 
+									ArrayList<Integer> queenMoved, 
+									ArrayList<Integer> arrow	) {
 		// create clone of board to use for testing purposes
 		Board temp = new Board(this);
 		
 		// check if queenCurrent holds your queen
 		if (temp.getTile(queenCurrent)!=player) {
 			// invalid action
-			System.out.println("No queen to move");
+			System.out.println("Your queen is not currently there.");
 			return false;
 		}
 		
@@ -257,7 +314,7 @@ public class Board {
 		}
 		if (valid==false) {
 			// action not contained in valid moves list
-			System.out.println("Queen can't move there");
+			System.out.println("Queen can't be moved there.");
 			return false;
 		}
 		
@@ -277,16 +334,17 @@ public class Board {
 		}
 		if (valid==false) {
 			// action not contained in valid actions list
-			System.out.println("Arrow can't be thrown there");
+			System.out.println("Arrow can't be thrown there.");
 			return false;
 		}
 		
 		// nothing ticked false -> valid move
 		return true;
-
 	}
 	
-	// output board as string so that it can be printed to console/file
+	/**
+	 * output visual representation of current board state
+	 */
 	public String toString() {
 		String output = "\nState of Board: \n";
 		output += "  -   -   -   -   -   -   -   -   -   -  \n";
