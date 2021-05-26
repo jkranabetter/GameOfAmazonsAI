@@ -21,7 +21,7 @@ public class Main {
 		long start, end, duration;
 		
 		// loop through gameplay
-		while ( board.checkWin()==0 ) {
+		while ( board.checkLose(player)==0 ) {
 			// display turn count
 			System.out.println("Start turn " + turnCount++);
 			// display colour moving
@@ -50,11 +50,11 @@ public class Main {
 		}
 		
 		// declare winner
-		if (board.checkWin()==Board.BLACK) {
-			System.out.println("Black wins");
+		if (player==Board.BLACK) {
+			System.out.println("Black loses. White wins.");
 		}
-		else if (board.checkWin()==Board.WHITE){
-			System.out.println("White wins");
+		else if (player==Board.WHITE){
+			System.out.println("White loses. Black wins.");
 		}
 		else {
 			System.out.println("Somehow nobody wins");

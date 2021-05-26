@@ -81,6 +81,27 @@ public class Board {
 		}
 	}
 	
+	// replacing checkWin, returns 0 if game not done, otherwise passed player returned
+	public int checkLose(int player) {
+		// get queens of passed player
+		ArrayList<ArrayList<Integer>> queens = this.getQueens(player);
+		
+		// loop through each queen
+		for (ArrayList<Integer> queen : queens) {
+			// get all directly accessible tiles for each queen
+			// if were to use unique method could skip finding more than one space
+			ArrayList<ArrayList<Integer>> directTiles = this.getDirectTiles(queen); 
+			
+			// check if at least one option available to player
+			if ( !(directTiles.isEmpty()) ) {
+				return 0;
+			}
+		}
+		
+		// no tiles to move to therefore player loses
+		return player;
+	}	
+	
 	// determine if either player can no longer make any more moves
 	public int checkWin() {
 		// loop through all queens, checking to see if all can't move
