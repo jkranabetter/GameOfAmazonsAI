@@ -51,10 +51,10 @@ public class Main {
 		
 		// declare winner
 		if (player==Board.BLACK) {
-			System.out.println("Black loses. White wins.");
+			System.out.println("Black unable to move. White wins.");
 		}
 		else if (player==Board.WHITE){
-			System.out.println("White loses. Black wins.");
+			System.out.println("White unable to move. Black wins.");
 		}
 		else {
 			System.out.println("Somehow nobody wins");

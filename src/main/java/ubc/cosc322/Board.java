@@ -11,7 +11,7 @@ public class Board {
 	public static final int OUTOFBOUNDS = 4;
 	
 	// 2d array holding integers representing what is occupying each tile
-	private int[][] tiles; // tiles[xPos][yPos], 0 row&col are set to 0(EMPTY) but cant be accessed
+	private int[][] tiles; // tiles[row][col], 0 row&col are set to 0(EMPTY) but cant be accessed
 	
 	// constructors
 	
@@ -20,63 +20,63 @@ public class Board {
 		this.tiles = new int[11][11];
 		for (int j=0; j<11; j++) {
 			for (int i=0; i<11; i++) {
-				this.setTile(Board.EMPTY, i, j);
+				this.setTile(Board.EMPTY, j, i);
 			}
 		}
 		// add initial queen positions
-		this.setTile(Board.BLACK, 4, 10);
-		this.setTile(Board.BLACK, 7, 10);
-		this.setTile(Board.BLACK, 1, 7);
+		this.setTile(Board.BLACK, 10, 4);
 		this.setTile(Board.BLACK, 10, 7);
-		this.setTile(Board.WHITE, 4, 1);
-		this.setTile(Board.WHITE, 7, 1);
+		this.setTile(Board.BLACK, 7, 1);
+		this.setTile(Board.BLACK, 7, 10);
 		this.setTile(Board.WHITE, 1, 4);
-		this.setTile(Board.WHITE, 10, 4);
+		this.setTile(Board.WHITE, 1, 7);
+		this.setTile(Board.WHITE, 4, 1);
+		this.setTile(Board.WHITE, 4, 10);
 	}
 	// create board by copying the layout of a passed board
-	public Board(Board board) {
+	public Board(Board original) {
 		this();
-		this.clone(board);
+		this.clone(original);
 	}
 	
 	// methods
 	
 	// change the value of a tile (specified by 2 separate integers) to passed newOccupant value
-	public void setTile(int newOccupant, int x, int y) {
+	public void setTile(int newOccupant, int row, int col) {
 		// check for invalid tile
-		if (x<1 || x>10 || y<1 || y>10) {
+		if (row<1 || row>10 || col<1 || col>10) {
 			// System.out.println("Can't set this tile");
 			return;
 		}
-		this.tiles[x][y] = newOccupant;
+		this.tiles[row][col] = newOccupant;
 	}
 	
 	// change the value of a tile (specified by arraylist of 2 integers) to passed newOccupant value
 	public void setTile(int newOccupant, ArrayList<Integer> position) {
-		this.setTile(newOccupant, position.get(1), position.get(0));
+		this.setTile(newOccupant, position.get(0), position.get(1));
 	}
 	
 	// determine value of a tile specified by 2 separate integers
-	public int getTile(int x, int y) {
+	public int getTile(int row, int col) {
 		// check for invalid tile
-		if (x<1 || x>10 || y<1 || y>10) {
+		if (row<1 || row>10 || col<1 || col>10) {
 			// System.out.println("Can't get this tile");
 			return Board.OUTOFBOUNDS;
 		}
 		// return tile value
-		return this.tiles[x][y];
+		return this.tiles[row][col];
 	}
 	
 	// determine value of a tile specified by arraylist of 2 integers
 	public int getTile(ArrayList<Integer> position) {
-		return this.getTile(position.get(1),position.get(0));
+		return this.getTile(position.get(0),position.get(1));
 	}
 	
 	// copy each tile from a passed board to this board
 	public void clone(Board original) {
 		for (int j=0; j<11; j++) {
 			for (int i=0; i<11; i++) {
-				this.setTile(original.getTile(i,j), i, j);
+				this.setTile(original.getTile(j,i), j, i);
 			}
 		}
 	}
@@ -156,7 +156,7 @@ public class Board {
 		// loop through each position on board
 		for (int j=1; j<11; j++) {
 			for (int i=1; i<11; i++) {
-				if (this.getTile(i,j)==player) {
+				if (this.getTile(j,i)==player) {
 					// add queen to list from current position
 					ArrayList<Integer> newQueen = new ArrayList<Integer>(); // create queen to add
 					newQueen.add(j); // add row
@@ -180,7 +180,7 @@ public class Board {
 		// loop through all visible options for movement
 		int initialX = initialPosition.get(1), initialY = initialPosition.get(0);
 		for (int count=0, dx=1, dy=0, i=initialX+dx, j=initialY+dy; count<8; i+=dx, j+=dy) {
-			if (this.getTile(i, j)==Board.EMPTY) {
+			if (this.getTile(j,i)==Board.EMPTY) {
 				// add empty tile position to options and continue along current line
 				ArrayList<Integer> newTile = new ArrayList<Integer>();
 				newTile.add(j); // add row
@@ -198,11 +198,11 @@ public class Board {
 				case 4: dx=-1; dy=-1; break;
 				case 5: dx=0; dy=-1; break;
 				case 6: dx=1; dy=-1; break;
-				case 7: dx=0; dy=0; break;
+				case 7: dx=0; dy=0; break; // not necessary b/c leaving loop 
 				}
 				// set to start of line (change i and j)
-				i=initialX;
-				j=initialY;
+				i = initialX;
+				j = initialY;
 			}
 		}
 		
@@ -288,12 +288,12 @@ public class Board {
 	
 	// output board as string so that it can be printed to console/file
 	public String toString() {
-		String output = "\nCurrent Board: \n";
+		String output = "\nState of Board: \n";
 		output += "  -   -   -   -   -   -   -   -   -   -  \n";
 		for (int j=10; j>=1; j--) {
 			output += "|";
 			for (int i=1; i<11; i++) {
-				switch (this.tiles[i][j]) {
+				switch (this.tiles[j][i]) {
 				case Board.EMPTY: output += "   "; break;
 				case Board.BLACK: output += " B "; break;
 				case Board.WHITE: output += " W "; break;
