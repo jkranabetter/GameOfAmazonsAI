@@ -33,10 +33,10 @@ public class Main {
 			start = System.nanoTime();
 			// have ai make move
 			if (player==Board.BLACK) {
-				aiBlack.makeAction(board);
+				aiBlack.doAction();
 			}
 			else {
-				aiWhite.makeAction(board);
+				aiWhite.doAction();
 			}
 			// get turn end time
 			end = System.nanoTime();

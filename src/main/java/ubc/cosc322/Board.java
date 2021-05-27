@@ -269,7 +269,10 @@ public class Board {
 		
 		// check validity of action 
 		if ( !(this.validateAction(player, queenCurrent, queenMoved, arrow)) ) {
-			System.out.println("Action not valid. You lose");
+			switch (player) {
+			case Board.BLACK: System.out.println("Black action invalid."); break;
+			case Board.WHITE: System.out.println("White action invalid."); break;
+			}
 			// return early without applying invalid move
 			return;
 		}
