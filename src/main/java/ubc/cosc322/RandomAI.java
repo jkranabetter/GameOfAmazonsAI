@@ -79,12 +79,13 @@ public class RandomAI {
 	}
 	
 	// have ai take state of board and apply its chosen action onto it (DO TURN)
-	public void doAction() {
+	public ArrayList<ArrayList<Integer>> doAction() {
 		this.actions.clear(); // clear actions from previous turn
 		this.actions = this.getAllMoves(this.trueBoard);
 		this.getRandomAction();
 		// System.out.println(this.actions.size() + " moves available"); // TESTING
 		this.trueBoard.applyAction(this.player, this.chosenAction);
+		return this.chosenAction;
 	}
 	
 	
