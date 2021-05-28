@@ -104,7 +104,7 @@ public class COSC322Test extends GamePlayer{
         }
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) {
             // System.out.println("action start");
-            this.gamegui.updateGameState(msgDetails);
+//            this.gamegui.updateGameState(msgDetails);
             
             // create ai as black
             this.board = new Board();
@@ -119,9 +119,9 @@ public class COSC322Test extends GamePlayer{
         }
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
             // System.out.println("action move");
-            this.gamegui.updateGameState( (java.util.ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR), 
-                                            (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT), 
-                                            (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS) );
+//            this.gamegui.updateGameState( (java.util.ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR), 
+//                                            (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT), 
+//                                            (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS) );
             
             // if ai not created, create ai as white
             if (this.ai==null) {
