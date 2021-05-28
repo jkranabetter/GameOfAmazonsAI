@@ -305,6 +305,18 @@ public class Board {
 			return false;
 		}
 		
+		if (temp.getTile(queenMoved)!=Board.EMPTY) {
+			// invalid action
+			System.out.println("Your queen cant move into non empty space.");
+			return false;
+		}
+		
+		if (temp.getTile(arrow)!=Board.EMPTY) {
+			// invalid action
+			System.out.println("cant throw arrow on non empty space.");
+			return false;
+		}
+		
 		// check if currentQueen can move to queenMoved
 		ArrayList<ArrayList<Integer>> options = temp.getDirectTiles(queenCurrent);
 		boolean valid = false;

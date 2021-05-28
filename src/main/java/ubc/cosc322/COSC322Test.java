@@ -103,18 +103,26 @@ public class COSC322Test extends GamePlayer{
             this.gamegui.setGameState( (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE) );
         }
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) {
-            // System.out.println("action start");
+            System.out.println("action start");
 //            this.gamegui.updateGameState(msgDetails);
             
             // create ai as black
-            this.board = new Board();
-            this.ai = new RandomAI(Board.BLACK);
-            ArrayList<ArrayList<Integer>> action = ai.doAction();
-            ArrayList<Integer> queenCurrent = action.get(0);
-            ArrayList<Integer> queenMoved = action.get(1);
-            ArrayList<Integer> arrow = action.get(2);
-            this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
-            this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
+            if (this.userName.equalsIgnoreCase((String)(msgDetails.get(AmazonsGameMessage.PLAYER_BLACK)))) {
+            	this.board = new Board();
+                this.ai = new RandomAI(Board.BLACK);
+                ArrayList<ArrayList<Integer>> action = ai.doAction();
+                ArrayList<Integer> queenCurrent = action.get(0);
+                ArrayList<Integer> queenMoved = action.get(1);
+                ArrayList<Integer> arrow = action.get(2);
+                this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
+                this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
+            }
+            else {
+            	this.board = new Board();
+            	this.ai = new RandomAI(Board.WHITE);
+            }
+            
+ 
             
         }
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
@@ -123,23 +131,29 @@ public class COSC322Test extends GamePlayer{
 //                                            (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT), 
 //                                            (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS) );
             
-            // if ai not created, create ai as white
-            if (this.ai==null) {
-            	this.board = new Board();
-                this.ai = new RandomAI(Board.WHITE);
-            }
             // read in opponent action to our board
             ArrayList<ArrayList<Integer>> action = new ArrayList<ArrayList<Integer>>();
             action.add( (ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR) );
             action.add( (ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT) );
             action.add( (ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.ARROW_POS) );
+            
             board.applyAction((this.ai.player==Board.BLACK)?(Board.WHITE):(Board.BLACK), action);
+            
+            this.gamegui.updateGameState(action.get(0), action.get(1), action.get(2));
+            
+            // check if we lost
+            if (board.checkLose(this.ai.player)==this.ai.player) {
+            	return true;
+            }
             
             // determine and send our action back to server
             action = ai.doAction();
             ArrayList<Integer> queenCurrent = action.get(0);
             ArrayList<Integer> queenMoved = action.get(1);
             ArrayList<Integer> arrow = action.get(2);
+            
+            System.out.println(board);
+            
             this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
             this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
             
