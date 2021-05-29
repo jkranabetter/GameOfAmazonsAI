@@ -11,8 +11,8 @@ public class Main {
 		Board_v2 board = new Board_v2();
 		
 		// create ai
-		RandomAI_v2 aiBlack = new RandomAI_v2(Board.BLACK, board);
-		RandomAI_v2 aiWhite = new RandomAI_v2(Board.WHITE, board);
+		Player aiBlack = new RandomAI_v2(Board.BLACK, board);
+		Player aiWhite = new RandomAI_v2(Board.WHITE, board);
 		
 		// print initial board state
 		System.out.println(board);

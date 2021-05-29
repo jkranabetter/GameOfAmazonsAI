@@ -27,7 +27,7 @@ public class COSC322Test extends GamePlayer{
 	private String passwd = null;
 
 	Board_v2 board; // changed to v2
-	RandomAI_v2 ai; // changed to v2
+	Player ai; // changed to v2
 
 
 	/**
