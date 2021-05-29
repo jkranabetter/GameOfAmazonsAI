@@ -11,8 +11,8 @@ public class Main {
 		Board_v2 board = new Board_v2();
 		
 		// create ai
-		Player aiBlack = new RandomAI_v2(Board.BLACK, board);
-		Player aiWhite = new RandomAI_v2(Board.WHITE, board);
+		Player aiBlack = new SmartAI(Board.BLACK, board);
+		Player aiWhite = new SmartAI(Board.WHITE, board);
 		
 		// print initial board state
 		System.out.println(board);
@@ -42,6 +42,7 @@ public class Main {
 				ArrayList<Integer> queenMoved = action.get(1);
 				ArrayList<Integer> arrow = action.get(2);
 				board.applyAction(player, queenCurrent, queenMoved, arrow);
+				board.outputActionToConsole(queenCurrent, queenMoved, arrow);
 			}
 			else {
 				ArrayList<ArrayList<Integer>> action = aiWhite.getAction();
@@ -49,16 +50,18 @@ public class Main {
 				ArrayList<Integer> queenMoved = action.get(1);
 				ArrayList<Integer> arrow = action.get(2);
 				board.applyAction(player, queenCurrent, queenMoved, arrow);
+				board.outputActionToConsole(queenCurrent, queenMoved, arrow);
 			}
 			// get turn end time
 			end = System.nanoTime();
-			// calculate turn duration
-			duration = end - start;
-			System.out.println("AI took " + (duration) + " nanoseconds to make decision.");
+			// calculate turn duration in seconds
+			duration = (end - start) / (int)(Math.pow(10, 9));
+			System.out.println("AI took " + (duration) + " seconds to make decision.");
 			// display new board
 			System.out.println(board);
 			// switch player
 			player = (player==Board.BLACK) ? (Board.WHITE) : (Board.BLACK);
+			// break; // TEMPORARY
 		}
 		
 		// declare winner

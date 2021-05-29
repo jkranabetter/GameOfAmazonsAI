@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public abstract class Player {
 	//-- FIELDS --//
-	int player;
+	int player, opponent;
 	Board_v2 trueBoard;
 	
 	//-- CONSTRUCTORS --//
@@ -15,6 +15,7 @@ public abstract class Player {
 	 */
 	public Player(int playerInt, Board_v2 board) {
 		this.player = playerInt;
+		this.opponent = (this.player==Board.BLACK)?Board.WHITE:Board.BLACK;
 		trueBoard = board;
 	}
 	

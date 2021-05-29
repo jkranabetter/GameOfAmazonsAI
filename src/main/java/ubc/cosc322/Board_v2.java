@@ -242,7 +242,7 @@ public class Board_v2 {
 		// reset queen to current position
 		this.setTile(player, queenCurrent);
 		// return true if no false flags ticked
-		System.out.println(this.getPlayerColorString(player) + "'s action is valid.");
+		// System.out.println(this.getPlayerColorString(player) + "'s action is valid.");
 		return true;
 	}
 	
@@ -291,7 +291,11 @@ public class Board_v2 {
 		this.setTile(Board.EMPTY, queenCurrent);
 		this.setTile(player, queenMoved);
 		this.setTile(Board.ARROW, arrow);
-		// output action to console
+	}
+	
+	public void outputActionToConsole(ArrayList<Integer> queenCurrent, 
+										ArrayList<Integer> queenMoved, 
+										ArrayList<Integer> arrow) {
 		System.out.println("Moved queen from " + queenCurrent + " to " + queenMoved + " and threw arrow to " + arrow);
 	}
 	

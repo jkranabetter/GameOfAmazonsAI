@@ -29,23 +29,32 @@ public class SmartAI extends Player {
 	@Override
 	public ArrayList<ArrayList<Integer>> getAction() {
 		// call minimax function on trueBoard with specified depth
-		return this.minimax(trueBoard, 3);
+		return this.minimax(trueBoard, 2);
 	}
 	
+	/**
+	 * First layer of minimax algorithm
+	 * loops through all actions that can be taken this turn finding the best scored action
+	 * returns the action instead of the score (like in maxValue())
+	 * @param board board to get actions from
+	 * @param depth depth of tree to search
+	 * @return best action for ai to take
+	 */
 	public ArrayList<ArrayList<Integer>> minimax(Board_v2 board, int depth) {
+		System.out.println("Beginning minimax algorithm with depth " + depth);
 		// get all actions
 		ArrayList<ArrayList<ArrayList<Integer>>> actions = this.getAllActions(player, board);
 		// create action and score variables to hold best action and score found
 		ArrayList<ArrayList<Integer>> bestAction = actions.get(0);
-		int bestScore = -999;
+		int bestScore = Integer.MIN_VALUE;
 		// loop through each action
 		for (int i=0; i<actions.size(); i++) {
 			// clone passed board
 			Board_v2 nextBoard = new Board_v2(board);
 			// apply action to cloned board 
 			nextBoard.applyAction(this.player, actions.get(i).get(0), actions.get(i).get(1), actions.get(i).get(2));
-			// get score from applied action
-			int score = this.maxValue(nextBoard, depth);
+			// recurse into opponent turn to get score
+			int score = this.minValue(nextBoard, depth-1);
 			// check if action score is better than current best
 			if (score>bestScore) {
 				// update bestAction and bestScore to current action and score
@@ -56,27 +65,129 @@ public class SmartAI extends Player {
 				// choose random OR score each board state OR just do/don't update
 			}
 		}
+		System.out.println("Chosen action has score of " + bestScore);
 		// return chosen action
 		return bestAction;
 	}
-	
+	/**
+	 * Get the player's best action's score for passed board
+	 * @param board to analyze
+	 * @param depth depth of tree to stop recursing at
+	 * @return best possible score
+	 */
 	public int maxValue(Board_v2 board, int depth) {
+		// System.out.println("Searching for max value at depth of " + depth);
 		// check if reached max depth -> score current state of board and return it
-		
-		// loop through actions getting next row of tree
-		
+		if (depth<=0) {
+			// System.out.println("Reached max depth, scoring board");
+			// score current board and return terminal score
+			return this.scoreBoard(board);
+		}
+		// get all player actions
+		ArrayList<ArrayList<ArrayList<Integer>>> actions = this.getAllActions(player, board);
+		// check if no player options -> lose
+		if (actions.isEmpty()) {
+			// System.out.println("Reached losing state");
+			// no way to recurse on this board state
+			return this.scoreBoard(board);
+		}
+		// initialize best score to worse possible
+		int bestScore = Integer.MIN_VALUE;
+		// loop through player actions
+		for (int i=0; i<actions.size(); i++) {
+			// clone passed board
+			Board_v2 nextBoard = new Board_v2(board);
+			// apply action to cloned board 
+			nextBoard.applyAction(this.player, actions.get(i).get(0), actions.get(i).get(1), actions.get(i).get(2));
+			
+			
+			// check if no point recursing into this action
+			int scoreBasic = this.scoreBoard(nextBoard);
+			if (scoreBasic<=0) {
+				return scoreBasic;
+			}
+			
+			
+			// recurse into opponent's turn to get score
+			int score = this.minValue(nextBoard, depth-1);
+			// check if action score is better than current best
+			if (score>bestScore) {
+				// update bestScore to current score
+				bestScore = score;
+			}
+			else if (score==bestScore) {
+				// choose random OR score each board state OR just do/don't update
+			}
+		}
 		// return the max valued action
-		
-		return 0; // TEMPORARY
+		return bestScore;
 	}
+	
+	/**
+	 * Get the opponents best action's score (lowest score) for passed board
+	 * @param board board to analyze
+	 * @param depth depth to stop recursing at 
+	 * @return worst possible score 
+	 */
 	public int minValue(Board_v2 board, int depth) {
+		// System.out.println("Searching for min value at depth of " + depth);
 		// check if reached max depth -> score current state of board and return it
-		
-		// loop through actions getting next row of tree
-		
+		if (depth<=0) {
+			// System.out.println("Reached max depth, scoring board");
+			// score current board and return terminal score
+			return this.scoreBoard(board);
+		}
+		// get all opponent actions
+		ArrayList<ArrayList<ArrayList<Integer>>> actions = this.getAllActions(opponent, board);
+		// check if no opponent options -> win
+		if (actions.isEmpty()) {
+			// System.out.println("Reached winning state");
+			// no way to recurse on this board state
+			return this.scoreBoard(board);
+		}
+		// initialize worst score to best possible
+		int worstScore = Integer.MAX_VALUE;
+		// loop through player actions
+		for (int i=0; i<actions.size(); i++) {
+			// clone passed board
+			Board_v2 nextBoard = new Board_v2(board);
+			// apply action to cloned board 
+			nextBoard.applyAction(opponent, actions.get(i).get(0), actions.get(i).get(1), actions.get(i).get(2));
+			
+			
+			// check if no point recursing into this action
+			int scoreBasic = this.scoreBoard(nextBoard);
+			if (scoreBasic<=0) {
+				return scoreBasic;
+			}
+			
+			
+			// recurse into player's's turn to get score
+			int score = this.maxValue(nextBoard, depth-1);
+			// check if action score is worse than current worse
+			if (score>worstScore) {
+				// update worstScore to current score
+				worstScore = score;
+			}
+			else if (score==worstScore) {
+				// choose random OR score each board state OR just do/don't update
+			}
+		}
 		// return the min valued action
-		
-		return 0; // TEMPORARY
+		return worstScore;
+	}
+	public int scoreBoard(Board_v2 board) {
+		// using total queens actions heuristic
+		int score = this.totalQueensActionsHeuristic(board);
+		// System.out.println("Gave score of " + score);
+		return score;
+	}
+	
+	public int totalQueensActionsHeuristic(Board_v2 board) {
+		// compare number of actions between player and opponent and return difference as score
+		ArrayList<ArrayList<ArrayList<Integer>>> playerActions = this.getAllActions(player, board);
+		ArrayList<ArrayList<ArrayList<Integer>>> opponentActions = this.getAllActions(opponent, board);
+		return playerActions.size()-opponentActions.size();
 	}
 	
 	
