@@ -104,29 +104,8 @@ public class COSC322Test extends GamePlayer{
 		}
 		else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) {
 			System.out.println("action start");
-			//            this.gamegui.updateGameState(msgDetails);
-
-//			// create ai as black
-//			if (this.userName.equalsIgnoreCase((String)(msgDetails.get(AmazonsGameMessage.PLAYER_BLACK)))) {
-//				this.board = new Board();
-//				this.ai = new RandomAI(Board.BLACK);
-//				System.out.println("Black AI created.");
-//				ArrayList<ArrayList<Integer>> action = ai.doAction();
-//				ArrayList<Integer> queenCurrent = action.get(0);
-//				ArrayList<Integer> queenMoved = action.get(1);
-//				ArrayList<Integer> arrow = action.get(2);
-//				System.out.println("Black AI is sending action to server now.");
-//				this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
-//				this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
-//			}
-//			else {
-//				this.board = new Board();
-//				this.ai = new RandomAI(Board.WHITE);
-//				System.out.println("White AI created.");
-//			}
 			
 			// version 2 code
-			
 			
 			// create board for player ai to use
 			this.board = new Board_v2();
@@ -156,55 +135,7 @@ public class COSC322Test extends GamePlayer{
 			
 		}
 		else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
-			// System.out.println("action move");
-			//            this.gamegui.updateGameState( (java.util.ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR), 
-			//                                            (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT), 
-			//                                            (java.util.ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS) );
-
-//			// read in opponent action to our board
-//			System.out.println("Reading in action from opponent.");
-//			ArrayList<ArrayList<Integer>> action = new ArrayList<ArrayList<Integer>>();
-//			action.add( (ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR) );
-//			action.add( (ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT) );
-//			action.add( (ArrayList<Integer>)msgDetails.get(AmazonsGameMessage.ARROW_POS) );
-//
-//			board.applyAction((this.ai.player==Board.BLACK)?(Board.WHITE):(Board.BLACK), action);
-//			System.out.println("Board updated with opponent action.");
-//			
-//			System.out.println(board);
-//			this.gamegui.updateGameState(action.get(0), action.get(1), action.get(2));
-//
-//			// check if we lost
-//			System.out.println("Checking if game lost before deciding action.");
-//			if (board.checkLose(this.ai.player)==this.ai.player) {
-//				System.out.println("Player has lost");
-//				return true;
-//			}
-//			System.out.println("Game not lost. Beginning player action.");
-//
-//			// determine and send our action back to server
-//			action = ai.doAction();
-//			ArrayList<Integer> queenCurrent = action.get(0);
-//			ArrayList<Integer> queenMoved = action.get(1);
-//			ArrayList<Integer> arrow = action.get(2);
-//
-//			long time = System.nanoTime();
-//			while ((System.nanoTime()-time)<=1000000000) {
-//
-//			}
-//			System.out.println("Sending player action to server now.");
-//
-//			System.out.println(board);
-//			this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
-//			this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
-
-			//these commented lines below were from what TA was showing in lab
-			//ArrayList<Integer>queenToMove = new ArrayList<Integer>;
-			//queenToMove.add(row);
-			//queenToMove.add(col);
-			//this.gameClient.sendMoveMessage(queenToMove, wheretoMove, whereToThrow);
-			////now we tell the gui about the above move
-			//this.gamegui.updateGameState(queenToMove, wheretoMove, whereToThrow);
+			System.out.println("action move");
 			
 			// version 2 code
 			
