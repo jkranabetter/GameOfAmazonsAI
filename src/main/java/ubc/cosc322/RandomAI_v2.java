@@ -19,6 +19,9 @@ public class RandomAI_v2 {
 	}
 	
 	//-- METHODS --//
+	public int getColor() {
+		return this.player;
+	}
 	/**
 	 * Get all possible actions passed player can make on passed board
 	 * @param player

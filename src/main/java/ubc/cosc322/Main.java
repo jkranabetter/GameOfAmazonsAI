@@ -1,14 +1,75 @@
 package ubc.cosc322;
 
+import java.util.ArrayList;
+
 public class Main {
 	
 	public static void main(String[] args) {
-		// create board
-		Board board = new Board();
+//		// create board
+//		Board board = new Board();
+//		
+//		// create AI
+//		RandomAI aiBlack = new RandomAI(Board.BLACK, board);
+//		RandomAI aiWhite = new RandomAI(Board.WHITE, board);
+//		
+//		// print initial board state
+//		System.out.println(board);
+//		
+//		// create player tracker
+//		int player = Board.BLACK; // switches from black to white and back untill win
+//		int turnCount = 0; // count iterations
+//		
+//		// timing fields
+//		long start, end, duration;
+//		
+//		// loop through gameplay
+//		while ( board.checkLose(player)==0 ) {
+//			// display turn count
+//			System.out.println("Start turn " + turnCount++);
+//			// display colour moving
+//			switch (player) {
+//			case Board.BLACK: System.out.println("Black is moving..."); break;
+//			case Board.WHITE: System.out.println("White is moving..."); break;
+//			}
+//			// get turn start time
+//			start = System.nanoTime();
+//			// have ai make move
+//			if (player==Board.BLACK) {
+//				aiBlack.doAction();
+//			}
+//			else {
+//				aiWhite.doAction();
+//			}
+//			// get turn end time
+//			end = System.nanoTime();
+//			// calculate turn duration
+//			duration = end - start;
+//			System.out.println("AI took " + (duration) + " nanoseconds to make decision.");
+//			// display new board
+//			System.out.println(board);
+//			// switch player
+//			player = (player==Board.BLACK) ? (Board.WHITE) : (Board.BLACK);
+//		}
+//		
+//		// declare winner
+//		if (player==Board.BLACK) {
+//			System.out.println("Black unable to move. White wins.");
+//		}
+//		else if (player==Board.WHITE){
+//			System.out.println("White unable to move. Black wins.");
+//		}
+//		else {
+//			System.out.println("Somehow nobody wins");
+//		}
 		
-		// create AI
-		RandomAI aiBlack = new RandomAI(Board.BLACK, board);
-		RandomAI aiWhite = new RandomAI(Board.WHITE, board);
+		// version 2 tests
+		
+		// create board
+		Board_v2 board = new Board_v2();
+		
+		// create ai
+		RandomAI_v2 aiBlack = new RandomAI_v2(Board.BLACK, board);
+		RandomAI_v2 aiWhite = new RandomAI_v2(Board.WHITE, board);
 		
 		// print initial board state
 		System.out.println(board);
@@ -21,7 +82,7 @@ public class Main {
 		long start, end, duration;
 		
 		// loop through gameplay
-		while ( board.checkLose(player)==0 ) {
+		while ( board.checkLose(player)==false ) {
 			// display turn count
 			System.out.println("Start turn " + turnCount++);
 			// display colour moving
@@ -33,10 +94,18 @@ public class Main {
 			start = System.nanoTime();
 			// have ai make move
 			if (player==Board.BLACK) {
-				aiBlack.doAction();
+				ArrayList<ArrayList<Integer>> action = aiBlack.getAction();
+				ArrayList<Integer> queenCurrent = action.get(0);
+				ArrayList<Integer> queenMoved = action.get(1);
+				ArrayList<Integer> arrow = action.get(2);
+				board.applyAction(player, queenCurrent, queenMoved, arrow);
 			}
 			else {
-				aiWhite.doAction();
+				ArrayList<ArrayList<Integer>> action = aiWhite.getAction();
+				ArrayList<Integer> queenCurrent = action.get(0);
+				ArrayList<Integer> queenMoved = action.get(1);
+				ArrayList<Integer> arrow = action.get(2);
+				board.applyAction(player, queenCurrent, queenMoved, arrow);
 			}
 			// get turn end time
 			end = System.nanoTime();
@@ -59,14 +128,6 @@ public class Main {
 		else {
 			System.out.println("Somehow nobody wins");
 		}
-		
-//		// TESTING
-//		for (int i=0; i<3; i++) {
-//			aiBlack.makeMove(board);
-//			System.out.println(board);
-//		}
-		
-
 	}
 
 }

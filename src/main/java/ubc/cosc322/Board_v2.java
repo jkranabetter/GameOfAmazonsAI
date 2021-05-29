@@ -20,7 +20,7 @@ public class Board_v2 {
 	
 	//-- CONSTRUCTORS --//
 	/**
-	 * Create board with all empty tiles
+	 * Create board with manual inputted queen locations
 	 */
 	public Board_v2() {
 		this.tiles = new int[11][11];
@@ -29,6 +29,14 @@ public class Board_v2 {
 				this.setTile(Board.EMPTY, i, j);
 			}
 		}
+		this.setTile(Board.BLACK, 10, 4);
+		this.setTile(Board.BLACK, 10, 7);
+		this.setTile(Board.BLACK, 7, 1);
+		this.setTile(Board.BLACK, 7, 10);
+		this.setTile(Board.WHITE, 1, 4);
+		this.setTile(Board.WHITE, 1, 7);
+		this.setTile(Board.WHITE, 4, 1);
+		this.setTile(Board.WHITE, 4, 10);
 	}
 	
 	/**
@@ -187,12 +195,12 @@ public class Board_v2 {
 										ArrayList<Integer> queenMoved, 
 										ArrayList<Integer> arrow) {
 		// check if queenCurrent is player's queen
-		if (this.getTile(queenCurrent)==player) {
+		if (this.getTile(queenCurrent)!=player) {
 			System.out.println(this.getPlayerColor(player) + "'s queen not at " + queenCurrent);
 			return false;
 		}
 		// check if queenMoved is empty
-		if (this.getTile(queenMoved)==Board.EMPTY) {
+		if (this.getTile(queenMoved)!=Board.EMPTY) {
 			System.out.println(this.getPlayerColor(player) + " cannot move queen to " + queenMoved);
 			return false;
 		}
@@ -208,8 +216,12 @@ public class Board_v2 {
 			System.out.println(this.getPlayerColor(player) + "'s queen cannot reach " + queenMoved);
 			return false;
 		}
+		// move queen out of queen current
+		this.setTile(Board.EMPTY, queenCurrent);
 		// check if arrow is empty
-		if (this.getTile(arrow)==Board.EMPTY) {
+		if (this.getTile(arrow)!=Board.EMPTY) {
+			// reset queen to current position before returning
+			this.setTile(player, queenCurrent);
 			System.out.println(this.getPlayerColor(player) + "'s arrow can not be thrown to " + arrow);
 			return false;
 		}
@@ -222,9 +234,13 @@ public class Board_v2 {
 			}
 		}
 		if (flag==false) {
+			// reset queen to current position before returning
+			this.setTile(player, queenCurrent);
 			System.out.println(this.getPlayerColor(player) + "'s arrow cannot reach " + arrow);
 			return false;
 		}
+		// reset queen to current position
+		this.setTile(player, queenCurrent);
 		// return true if no false flags ticked
 		System.out.println(this.getPlayerColor(player) + "'s action is valid.");
 		return true;
