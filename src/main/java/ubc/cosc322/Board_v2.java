@@ -196,12 +196,12 @@ public class Board_v2 {
 										ArrayList<Integer> arrow) {
 		// check if queenCurrent is player's queen
 		if (this.getTile(queenCurrent)!=player) {
-			System.out.println(this.getPlayerColor(player) + "'s queen not at " + queenCurrent);
+			System.out.println(this.getPlayerColorString(player) + "'s queen not at " + queenCurrent);
 			return false;
 		}
 		// check if queenMoved is empty
 		if (this.getTile(queenMoved)!=Board.EMPTY) {
-			System.out.println(this.getPlayerColor(player) + " cannot move queen to " + queenMoved);
+			System.out.println(this.getPlayerColorString(player) + " cannot move queen to " + queenMoved);
 			return false;
 		}
 		// check if queenMoved is reachable by queenCurrent
@@ -213,7 +213,7 @@ public class Board_v2 {
 			}
 		}
 		if (flag==false) {
-			System.out.println(this.getPlayerColor(player) + "'s queen cannot reach " + queenMoved);
+			System.out.println(this.getPlayerColorString(player) + "'s queen cannot reach " + queenMoved);
 			return false;
 		}
 		// move queen out of queen current
@@ -222,7 +222,7 @@ public class Board_v2 {
 		if (this.getTile(arrow)!=Board.EMPTY) {
 			// reset queen to current position before returning
 			this.setTile(player, queenCurrent);
-			System.out.println(this.getPlayerColor(player) + "'s arrow can not be thrown to " + arrow);
+			System.out.println(this.getPlayerColorString(player) + "'s arrow can not be thrown to " + arrow);
 			return false;
 		}
 		// check if arrow is reachable from queenMoved
@@ -236,13 +236,13 @@ public class Board_v2 {
 		if (flag==false) {
 			// reset queen to current position before returning
 			this.setTile(player, queenCurrent);
-			System.out.println(this.getPlayerColor(player) + "'s arrow cannot reach " + arrow);
+			System.out.println(this.getPlayerColorString(player) + "'s arrow cannot reach " + arrow);
 			return false;
 		}
 		// reset queen to current position
 		this.setTile(player, queenCurrent);
 		// return true if no false flags ticked
-		System.out.println(this.getPlayerColor(player) + "'s action is valid.");
+		System.out.println(this.getPlayerColorString(player) + "'s action is valid.");
 		return true;
 	}
 	
@@ -262,12 +262,12 @@ public class Board_v2 {
 			// check if at least one tile can be reached
 			if (directTiles.isEmpty()==false) {
 				// at least 1 queen can move to at least 1 tile
-				System.out.println(this.getPlayerColor(player) + " can still move.");
+				System.out.println(this.getPlayerColorString(player) + " can still move.");
 				return false;
 			}
 		}
 		// no queen could move therefore passed player loses
-		System.out.println(this.getPlayerColor(player) + " can no longer move.");
+		System.out.println(this.getPlayerColorString(player) + " can no longer move.");
 		return true;
 	}
 	
@@ -285,7 +285,7 @@ public class Board_v2 {
 							ArrayList<Integer> arrow) {
 		// check validity of action
 		if ( this.getActionValidity(player, queenCurrent, queenMoved, arrow)==false ) {
-			System.out.println(this.getPlayerColor(player) + "'s action is invalid.");
+			System.out.println(this.getPlayerColorString(player) + "'s action is invalid.");
 		}
 		// update board with action
 		this.setTile(Board.EMPTY, queenCurrent);
@@ -300,7 +300,7 @@ public class Board_v2 {
 	 * @param player player color in int format
 	 * @return player color in string format
 	 */
-	public String getPlayerColor(int player) {
+	public String getPlayerColorString(int player) {
 		if (player==Board.BLACK) {
 			return "Black";
 		}

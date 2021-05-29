@@ -109,7 +109,7 @@ public class COSC322Test extends GamePlayer{
 			
 			// create board for player ai to use
 			this.board = new Board_v2();
-			// create black ai or white ai
+			// determine which color is assigned to player
 			if ( this.userName.equalsIgnoreCase( (String)( msgDetails.get(AmazonsGameMessage.PLAYER_BLACK) ) ) ) {
 				// create black ai
 				System.out.println("Creating Black AI");
@@ -122,7 +122,7 @@ public class COSC322Test extends GamePlayer{
 				ArrayList<Integer> arrow = action.get(2);
 				// send action to 3 places
 				System.out.println("Sending Black AI initial action");
-				board.applyAction(this.ai.getColor(), queenCurrent, queenMoved, arrow);
+				board.applyAction(this.ai.getColorInt(), queenCurrent, queenMoved, arrow);
 				System.out.println(board);
 				this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
 				this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
@@ -140,18 +140,18 @@ public class COSC322Test extends GamePlayer{
 			// version 2 code
 			
 			// read in opponent action to board and gamegui
-			System.out.println("Opponent is " + board.getPlayerColor((ai.getColor()==Board.BLACK)?Board.WHITE:Board.BLACK));
+			System.out.println("Opponent is " + board.getPlayerColorString((ai.getColorInt()==Board.BLACK)?Board.WHITE:Board.BLACK));
 			System.out.println("Reading in action from opponent");
 			ArrayList<Integer> queenCurrent = (ArrayList<Integer>)( msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR) );
 			ArrayList<Integer> queenMoved = (ArrayList<Integer>)( msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT) );
 			ArrayList<Integer> arrow = (ArrayList<Integer>)( msgDetails.get(AmazonsGameMessage.ARROW_POS) );
-			board.applyAction((this.ai.getColor()==Board.BLACK)?Board.WHITE:Board.BLACK, queenCurrent, queenMoved, arrow);
+			board.applyAction((this.ai.getColorInt()==Board.BLACK)?Board.WHITE:Board.BLACK, queenCurrent, queenMoved, arrow);
 			System.out.println(board);
 			this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
 			// determine if player has lost
-			if (board.checkLose(this.ai.getColor())==false) {
+			if (board.checkLose(this.ai.getColorInt())==false) {
 				// determine action
-				System.out.println("Player is " + board.getPlayerColor(ai.getColor()));
+				System.out.println("Player is " + board.getPlayerColorString(ai.getColorInt()));
 				System.out.println("Determining player action");
 				ArrayList<ArrayList<Integer>> action = ai.getAction();
 				queenCurrent = action.get(0);
@@ -159,7 +159,7 @@ public class COSC322Test extends GamePlayer{
 				arrow = action.get(2);
 				// send action to 3 places
 				System.out.println("Sending player action");
-				board.applyAction(this.ai.getColor(), queenCurrent, queenMoved, arrow);
+				board.applyAction(this.ai.getColorInt(), queenCurrent, queenMoved, arrow);
 				System.out.println(board);
 				this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
 				this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
