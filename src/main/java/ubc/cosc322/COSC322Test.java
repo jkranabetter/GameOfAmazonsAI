@@ -127,6 +127,7 @@ public class COSC322Test extends GamePlayer{
 			
 			// version 2 code
 			
+			
 			// create board for player ai to use
 			this.board = new Board_v2();
 			// create black ai or white ai

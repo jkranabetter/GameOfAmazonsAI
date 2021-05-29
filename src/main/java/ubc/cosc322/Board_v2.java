@@ -3,6 +3,9 @@ package ubc.cosc322;
 import java.util.ArrayList;
 
 public class Board_v2 {
+	
+	// temp change
+	
 	//-- CONSTANTS --//
 	public static final int EMPTY = 0;
 	public static final int BLACK = 1;
