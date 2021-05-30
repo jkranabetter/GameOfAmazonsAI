@@ -11,7 +11,7 @@ public class Main {
 		Board_v2 board = new Board_v2();
 		
 		// create ai
-		Player aiBlack = new SmartAI(Board.BLACK, board);
+		Player aiBlack = new RandomAI_v2(Board.BLACK, board);
 		Player aiWhite = new SmartAI(Board.WHITE, board);
 		
 		// print initial board state

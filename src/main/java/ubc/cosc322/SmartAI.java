@@ -33,7 +33,7 @@ public class SmartAI extends Player {
 		// initialize turn start time
 		this.turnStartTime = System.nanoTime();
 		this.turnExitTime = 28;
-		this.searchDepth = 2;
+		this.searchDepth = 3;
 		// call minimax function on trueBoard with specified depth
 		return this.minimax(trueBoard, searchDepth);
 	}
@@ -41,13 +41,13 @@ public class SmartAI extends Player {
 	/**
 	 * First layer of minimax algorithm
 	 * loops through all actions that can be taken this turn finding the best scored action
-	 * returns the action instead of the score (like in maxValue())
+	 * returns the best action instead of the best score (like in maxValue())
 	 * @param board board to get actions from
 	 * @param depth depth of tree to search
 	 * @return best action for ai to take
 	 */
 	public ArrayList<ArrayList<Integer>> minimax(Board_v2 board, int depth) {
-		System.out.println("Beginning minimax algorithm with depth " + depth);
+		// System.out.println("Beginning minimax algorithm with depth " + depth);
 		// get all actions
 		ArrayList<ArrayList<ArrayList<Integer>>> actions = this.getAllActions(player, board);
 		// create action and score variables to hold best action and score found
@@ -64,13 +64,13 @@ public class SmartAI extends Player {
 			// apply action to cloned board 
 			nextBoard.applyAction(this.player, actions.get(i).get(0), actions.get(i).get(1), actions.get(i).get(2));
 			// recurse into opponent turn to get score
-			int score = this.minValue(nextBoard, depth-1);
-			// check if action score is better than current best
+			int score = this.minValue(nextBoard, depth-1, bestScore);
+			// check if action score is strictly better than current best
 			if (score>bestScore) {
 				// update bestAction and bestScore to current action and score
 				bestAction = actions.get(i);
 				bestScore = score;
-				System.out.println("Best score updated in minimax to " + bestScore);
+				// System.out.println("Best score updated in minimax to " + bestScore);
 			}
 			else if (score==bestScore) {
 				// choose random OR score each board state OR just do/don't update
@@ -80,13 +80,14 @@ public class SmartAI extends Player {
 		// return chosen action
 		return bestAction;
 	}
+	
 	/**
 	 * Get the player's best action's score for passed board
 	 * @param board to analyze
 	 * @param depth depth of tree to stop recursing at
 	 * @return best possible score
 	 */
-	public int maxValue(Board_v2 board, int depth) {
+	public int maxValue(Board_v2 board, int depth, int beta) {
 		// System.out.println("Searching for max value at depth of " + depth);
 		// check if reached max depth -> score current state of board and return it
 		if (depth<=0) {
@@ -119,8 +120,8 @@ public class SmartAI extends Player {
 			// apply action to cloned board 
 			nextBoard.applyAction(this.player, actions.get(i).get(0), actions.get(i).get(1), actions.get(i).get(2));
 			// recurse into opponent's turn to get score
-			int score = this.minValue(nextBoard, depth-1);
-			// check if action score is better than current best
+			int score = this.minValue(nextBoard, depth-1, bestScore);
+			// check if action score is strictly better than current best
 			if (score>bestScore) {
 				// update bestScore to current score
 				bestScore = score;
@@ -128,6 +129,12 @@ public class SmartAI extends Player {
 			}
 			else if (score==bestScore) {
 				// choose random OR score each board state OR just do/don't update
+			}
+			// check if bestScore is bigger than beta
+			if (bestScore>beta) {
+				// System.out.println("Beta smaller, skipping nodes");
+				// other children from this node will have no affect on parent node
+				break;
 			}
 		}
 		// return the max valued action
@@ -140,7 +147,7 @@ public class SmartAI extends Player {
 	 * @param depth depth to stop recursing at 
 	 * @return worst possible score 
 	 */
-	public int minValue(Board_v2 board, int depth) {
+	public int minValue(Board_v2 board, int depth, int alpha) {
 		// System.out.println("Searching for min value at depth of " + depth);
 		// check if reached max depth -> score current state of board and return it
 		if (depth<=0) {
@@ -173,8 +180,8 @@ public class SmartAI extends Player {
 			// apply action to cloned board 
 			nextBoard.applyAction(opponent, actions.get(i).get(0), actions.get(i).get(1), actions.get(i).get(2));
 			// recurse into player's's turn to get score
-			int score = this.maxValue(nextBoard, depth-1);
-			// check if action score is worse than current worse
+			int score = this.maxValue(nextBoard, depth-1, worstScore);
+			// check if action score is strictly worse than current worse
 			if (score<worstScore) {
 				// update worstScore to current score
 				worstScore = score;
@@ -182,6 +189,12 @@ public class SmartAI extends Player {
 			}
 			else if (score==worstScore) {
 				// choose random OR score each board state OR just do/don't update
+			}
+			// check if worstScore is smaller than alpha
+			if (worstScore<alpha) {
+				// System.out.println("Alpha larger, skipping nodes");
+				// other children from this node will have no affect on parent node
+				break;
 			}
 		}
 		// return the min valued action
