@@ -61,7 +61,7 @@ public class Main {
 			System.out.println(board);
 			// switch player
 			player = (player==Board.BLACK) ? (Board.WHITE) : (Board.BLACK);
-			// break; // TEMPORARY
+			// break; // TESTING
 		}
 		
 		// declare winner
