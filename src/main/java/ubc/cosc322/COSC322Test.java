@@ -113,7 +113,7 @@ public class COSC322Test extends GamePlayer{
 			if ( this.userName.equalsIgnoreCase( (String)( msgDetails.get(AmazonsGameMessage.PLAYER_BLACK) ) ) ) {
 				// create black ai
 				System.out.println("Creating Black AI");
-				this.ai = new RandomAI_v2(Board.BLACK, this.board);
+				this.ai = new SmartAI(Board.BLACK, this.board);
 				// determine black first move
 				System.out.println("Determining Black AI initial action");
 				ArrayList<ArrayList<Integer>> action = ai.getAction();
@@ -130,7 +130,7 @@ public class COSC322Test extends GamePlayer{
 			else {
 				// create white ai
 				System.out.println("Creating White AI");
-				this.ai = new RandomAI_v2(Board.WHITE, this.board);
+				this.ai = new SmartAI(Board.WHITE, this.board);
 			}
 			
 		}

@@ -152,7 +152,7 @@ public class Board_v2 {
 		// create list to store empty tiles
 		ArrayList<ArrayList<Integer>> directTiles = new ArrayList<ArrayList<Integer>>();
 		// loop through directly reachable empty tiles along straight lines
-		for (int count=0, dx=1, dy=0, row=position.get(0)+dy, col=position.get(1)+dx; count<8; row+=dy, col+=dx) {
+		for (int count=0, dx=1, dy=1, row=position.get(0)+dy, col=position.get(1)+dx; count<8; row+=dy, col+=dx) {
 			// check if empty tile
 			if (this.getTile(row,col)==Board.EMPTY) {
 				// add tile to list
@@ -163,16 +163,16 @@ public class Board_v2 {
 				// continue to next tile in line
 				continue;
 			}
-			// define new line
+			// define new line -> updated order of lines, doing diagonals first
 			switch (count++) {
-			case 0: dx=1; dy=1; break;
-			case 1: dx=0; dy=1; break;
-			case 2: dx=-1; dy=1; break;
-			case 3: dx=-1; dy=0; break;
-			case 4: dx=-1; dy=-1; break;
-			case 5: dx=0; dy=-1; break;
-			case 6: dx=1; dy=-1; break;
-			case 7: dx=0; dy=0; break;
+			case 0: dx=-1; dy=1; break;
+			case 1: dx=-1; dy=-1; break;
+			case 2: dx=1; dy=-1; break;
+			case 3: dx=1; dy=0; break;
+			case 4: dx=0; dy=1; break;
+			case 5: dx=-1; dy=0; break;
+			case 6: dx=0; dy=-1; break;
+			case 7: dx=1; dy=1; break;
 			}
 			// reset to start of line
 			row = position.get(0);
