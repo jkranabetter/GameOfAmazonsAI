@@ -15,6 +15,7 @@ public class SmartAI extends Player {
 	//-- FIELDS --//
 	long turnStartTime, turnDuration;
 	int searchDepth, turnCount, heuristicType;
+	ArrayList<ArrayList<Integer>> isolatedQueens;
 	
 	
 	//-- CONSTRUCTORS --//
@@ -35,6 +36,8 @@ public class SmartAI extends Player {
 		}
 		// set turn duration
 		this.turnDuration = 28; // gives 2 seconds to get out of multiple layers of loops
+		// initialize isolated queens to empty
+		this.isolatedQueens = new ArrayList<ArrayList<Integer>>();
 	}
 
 	//-- GENERAL METHODS --//
@@ -102,6 +105,15 @@ public class SmartAI extends Player {
 			return false;
 		}
 	}
+	
+	/**
+	 * check for queens who dont need to contribute to search tree
+	 * can just find longest path
+	 */
+	public void findIsolatedQueens() {
+		
+	}
+	
 	//-- MINIMAX ALGORITHM --//
 	
 	/**
