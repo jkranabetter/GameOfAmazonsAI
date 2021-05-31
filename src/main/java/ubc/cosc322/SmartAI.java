@@ -45,26 +45,30 @@ public class SmartAI extends Player {
 		// increment turn counter
 		this.turnCount += 2;
 		
-		// perform minimax search at set level
-		ArrayList<ArrayList<Integer>> bestAction = this.minimax(trueBoard, searchDepth);
+//		// perform minimax search at set level
+//		ArrayList<ArrayList<Integer>> bestAction = this.minimax(trueBoard, searchDepth);
 		
-		// perform iterative minimax search with any extra time
-		for (int i=searchDepth+1; true; i++) {
+		// create pointer to best action
+		ArrayList<ArrayList<Integer>> bestAction = new ArrayList<ArrayList<Integer>>();
+		// perform iterative minimax search 
+		for (int i=searchDepth; true; i++) {
 			// check if end of turn yet
-			if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
-				break;
-			}
+			if (this.checkEndTurn()) { break; }
 			// begin iteration
 			System.out.println("Beginning iteration " + i);
 			// do minimax search to depth i
 			ArrayList<ArrayList<Integer>> action = this.minimax(trueBoard, i);
+			// check if initializing bestAction
+			if (bestAction.isEmpty()) {
+				bestAction = action;
+			}
 			// check if updating to same action -> can stop b/c confirmed best action
 			if (action.get(0).equals(bestAction.get(0)) && action.get(1).equals(bestAction.get(1)) && action.get(2).equals(bestAction.get(2))) {
 				break;
 			}
 			// check if new action is better
 			if (action.get(3).get(0)>=bestAction.get(3).get(0)) {
-				System.out.println("Updating score");
+				System.out.println("Updating best action");
 				bestAction = action;
 			}
 		}
@@ -88,6 +92,16 @@ public class SmartAI extends Player {
 		this.heuristicType = heuristicType;
 	}
 	
+	
+	public boolean checkEndTurn() {
+		// check if end of turn yet
+		if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 	//-- MINIMAX ALGORITHM --//
 	
 	/**
@@ -98,6 +112,7 @@ public class SmartAI extends Player {
 	 * @param depth depth of tree to search
 	 * @return best action for ai to take with corresponding score appended to end as length 1 list
 	 */
+
 	public ArrayList<ArrayList<Integer>> minimax(Board_v2 board, int depth) {
 		// System.out.println("Beginning minimax algorithm with depth " + depth);
 		// get all actions
@@ -108,9 +123,7 @@ public class SmartAI extends Player {
 		// loop through each action
 		for (int i=0; i<actions.size(); i++) {
 			// check if end of turn yet
-			if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
-				break;
-			}
+			if (this.checkEndTurn()) { break; }
 			// clone passed board
 			Board_v2 nextBoard = new Board_v2(board);
 			// apply action to cloned board 
@@ -164,7 +177,7 @@ public class SmartAI extends Player {
 		// loop through player actions
 		for (int i=0; i<actions.size(); i++) {
 			// check if end of turn yet
-			if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
+			if (this.checkEndTurn()) {
 				// check if passing MIN_VALUE score
 				if (bestScore==Integer.MIN_VALUE) {
 					return this.scoreBoard(board);
@@ -224,7 +237,7 @@ public class SmartAI extends Player {
 		// loop through player actions
 		for (int i=0; i<actions.size(); i++) {
 			// check if end of turn yet
-			if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
+			if (this.checkEndTurn()) {
 				// check if passing MAX_VALUE score
 				if (worstScore==Integer.MAX_VALUE) {
 					return this.scoreBoard(board);
@@ -259,6 +272,7 @@ public class SmartAI extends Player {
 	
 	/**
 	 * Use heuristic functions to determine a score for the passed board
+	 * temporary form currently
 	 * @param board board to give score to
 	 * @return score for board
 	 */
@@ -289,7 +303,11 @@ public class SmartAI extends Player {
 	
 	/**
 	 * Heuristic that compares number of tiles with closer player queens to tiles with closer opponent queen
-	 * loses to totalActionsHeuristic()
+	 * loses to totalActionsHeuristic() 
+	 * is very slow and inefficient
+	 * doesnt have to loop through each tile every time
+	 * only first time, then can run recursive function at queenCurrent, queenMoved, and adjacent to arrow
+	 * will have to run with opponent action too though
 	 * @param board
 	 * @return
 	 */
@@ -299,14 +317,10 @@ public class SmartAI extends Player {
 		// loop through board
 		for (int row=1; row<11; row++) {
 			// check if end of turn yet
-			if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
-				break;
-			}
+			if (this.checkEndTurn()) { break; }
 			for (int col=1; col<11; col++) {
 				// check if end of turn yet
-				if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
-					break;
-				}
+				if (this.checkEndTurn()) { break; }
 				// check if empty playable tile
 				if (board.getTile(row, col)==Board.EMPTY) {
 					// define tile position
@@ -353,9 +367,7 @@ public class SmartAI extends Player {
 		// loop through directly reachable empty tiles along straight lines looking for queens
 		for (int count=0, dx=1, dy=1, row=position.get(0)+dy, col=position.get(1)+dx; count<8; row+=dy, col+=dx) {
 			// check if end of turn yet
-			if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
-				break;
-			}
+			if (this.checkEndTurn()) { break; }
 			// check if empty tile
 			if (board.getTile(row,col)==Board.EMPTY) {
 				// add tile to list
@@ -409,9 +421,7 @@ public class SmartAI extends Player {
 		// loop through direct tiles to recurse into
 		for (int i=0; i<directTiles.size(); i++) {
 			// check if end of turn yet
-			if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
-				break;
-			}
+			if (this.checkEndTurn()) { break; }
 			// check if already been checked
 			if (checkedTiles[directTiles.get(i).get(0)][directTiles.get(i).get(1)]) {
 				// already recursed into tile, dont repeat
