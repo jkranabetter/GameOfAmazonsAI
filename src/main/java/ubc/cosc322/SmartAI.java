@@ -24,28 +24,8 @@ public class SmartAI extends Player {
 	 * @param board
 	 */
 	public SmartAI(int player, Board_v2 board) {
+		// create base fields
 		super(player,board);
-		this.initializeAIFields(28, 2, 0);
-	}
-
-	//-- GENERAL METHODS --//
-	@Override
-	public ArrayList<ArrayList<Integer>> getAction() {
-		// initialize turn start time
-		this.turnStartTime = System.nanoTime();
-		// increment turn counter
-		this.turnCount += 2;
-		// call minimax function on trueBoard with specified depth
-		return this.minimax(trueBoard, searchDepth);
-	}
-	
-	/**
-	 * Initialize ai fields that dictate how it searches as well as initialize turn counter
-	 * use to change parameters of 2 smart ai in main file so as to compare and contrast
-	 * @param turnDuration time on turn at which ai should begin exiting out of loops to end turn
-	 * @param searchDepth depth for minimax algorithm to stop searching at
-	 */
-	public void initializeAIFields(int turnDuration, int searchDepth, int heuristicType) {
 		// initialize turn counter, will be incremented to starting value on first turn
 		if (this.player==Board.BLACK) {
 			this.turnCount = -2;
@@ -55,8 +35,55 @@ public class SmartAI extends Player {
 		}
 		// set turn duration
 		this.turnDuration = 28; // gives 2 seconds to get out of multiple layers of loops
+	}
+
+	//-- GENERAL METHODS --//
+	@Override
+	public ArrayList<ArrayList<Integer>> getAction() {
+		// initialize turn start time
+		this.turnStartTime = System.nanoTime();
+		// increment turn counter
+		this.turnCount += 2;
+		
+		// perform minimax search at set level
+		ArrayList<ArrayList<Integer>> bestAction = this.minimax(trueBoard, searchDepth);
+		
+		// perform iterative minimax search with any extra time
+		for (int i=searchDepth+1; true; i++) {
+			// check if end of turn yet
+			if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
+				break;
+			}
+			// begin iteration
+			System.out.println("Beginning iteration " + i);
+			// do minimax search to depth i
+			ArrayList<ArrayList<Integer>> action = this.minimax(trueBoard, i);
+			// check if updating to same action -> can stop b/c confirmed best action
+			if (action.get(0).equals(bestAction.get(0)) && action.get(1).equals(bestAction.get(1)) && action.get(2).equals(bestAction.get(2))) {
+				break;
+			}
+			// check if new action is better
+			if (action.get(3).get(0)>=bestAction.get(3).get(0)) {
+				System.out.println("Updating score");
+				bestAction = action;
+			}
+		}
+		// remove score from action list
+		bestAction.remove(bestAction.size()-1);
+		// return action 
+		return bestAction;
+		
+	}
+	
+	/**
+	 * Initialize ai fields that dictate how it searches as well as initialize turn counter
+	 * use to change parameters of 2 smart ai in main file so as to compare and contrast
+	 * @param turnDuration time on turn at which ai should begin exiting out of loops to end turn
+	 * @param searchDepth depth for minimax algorithm to stop searching at
+	 */
+	public void changeAIFields(int searchDepth, int heuristicType) {
 		// set search depth
-		this.searchDepth = 2;
+		this.searchDepth = searchDepth;
 		// set heuristic type
 		this.heuristicType = heuristicType;
 	}
@@ -69,7 +96,7 @@ public class SmartAI extends Player {
 	 * returns the best action instead of the best score (as in maxValue())
 	 * @param board board to get actions from
 	 * @param depth depth of tree to search
-	 * @return best action for ai to take
+	 * @return best action for ai to take with corresponding score appended to end as length 1 list
 	 */
 	public ArrayList<ArrayList<Integer>> minimax(Board_v2 board, int depth) {
 		// System.out.println("Beginning minimax algorithm with depth " + depth);
@@ -101,8 +128,12 @@ public class SmartAI extends Player {
 				// choose random OR score each board state OR just do/don't update
 			}
 		}
-		System.out.println("Chosen action has score of " + bestScore);
-		// return chosen action
+		System.out.println("Best action has score of " + bestScore);
+		// append score onto end of action
+		ArrayList<Integer> appendingScore = new ArrayList<Integer>();
+		appendingScore.add(bestScore);
+		bestAction.add(appendingScore);
+		// return chosen action with score appended onto it as length 1 list
 		return bestAction;
 	}
 	
@@ -246,6 +277,7 @@ public class SmartAI extends Player {
 	
 	/**
 	 * Heuristic that compares players total available actions to opponent
+	 * out performs tileOwnershipHeuristic()
 	 * @param board board to find actions on
 	 * @return difference between player total actions and opponent total actions 
 	 */
@@ -257,6 +289,7 @@ public class SmartAI extends Player {
 	
 	/**
 	 * Heuristic that compares number of tiles with closer player queens to tiles with closer opponent queen
+	 * loses to totalActionsHeuristic()
 	 * @param board
 	 * @return
 	 */
