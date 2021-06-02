@@ -109,8 +109,16 @@ public class SmartAI extends Player {
 	/**
 	 * check for queens who dont need to contribute to search tree
 	 * can just find longest path
+	 * will need to change getActions loop to skip isolated queens
 	 */
 	public void findIsolatedQueens() {
+		// get all player's queens on trueBoard
+		ArrayList<ArrayList<Integer>> queens = this.trueBoard.getQueens(this.player);
+		// loop through queens
+		for (ArrayList<Integer> queen : queens) {
+			// check if disconnected from all opponent queens
+			
+		}
 		
 	}
 	
@@ -467,6 +475,48 @@ public class SmartAI extends Player {
 		}
 		// return closest queen value including pos and neg
 		return smallestDepth;
+	}
+	
+	public int tileOwnershipHeuristic_v2(Board_v2 board) {
+		// create array to hold which tiles belong to which player
+		int[][] tiles = new int[11][11];
+		// loop through tiles whos ownership have not yet been found
+		for (int row=1; row<11; row++) {
+			// check if end of turn yet
+			if (this.checkEndTurn()) { break; }
+			for (int col=1; col<11; col++) {
+				// check if end of turn yet
+				if (this.checkEndTurn()) { break; }
+				// check if tile ownership already found
+				if (tiles[row][col]==0) {
+					// skip
+					continue;
+				}
+				// get ownership of tile by recursing into it
+				ArrayList<Integer> position = new ArrayList<Integer>();
+				position.add(row);
+				position.add(col);
+				tiles[row][col] = this.tileOwnershipHeuristicRecurse_v2(tiles, board, position, 1);
+			}
+		}
+		return 0; // temp
+	}
+	
+	/**
+	 * get ownership of passed tile and recurse into reachable tiles getting their closests
+	 * @param tiles 2d array to place ownership value into for each tile
+	 * @param board
+	 * @param position
+	 * @param depth current depth may not be needed if gonna count upwards from back
+	 * @return distance to closest queen, positive if player's, negative if opponents, 0 if neutral
+	 */
+	public int tileOwnershipHeuristicRecurse_v2(int[][] tiles, Board_v2 board, ArrayList<Integer> position, int depth) {
+		// loop through reachable tiles looking for queens reachable in one turn
+		// determine if queen(s) is(are) reachable and return +1, -1, or 0
+		// get closest queens to each of the reachable tiles
+		// determine closest queen to this tile and return it
+		
+		return 0; // temp
 	}
 	
 	
