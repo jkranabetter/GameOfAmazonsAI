@@ -11,8 +11,8 @@ public class Main {
 		Board_v2 board = new Board_v2();
 		
 		// create ai
-		Player aiBlack = new SmartAI(Board.BLACK, board);
-		Player aiWhite = new SmartAI(Board.WHITE, board);
+		Player aiBlack = new RandomAI_v2(Board_v2.BLACK, board);
+		Player aiWhite = new RandomAI_v2(Board_v2.WHITE, board);
 		
 		// set ai parameters
 		if (aiBlack instanceof SmartAI) {
@@ -26,7 +26,7 @@ public class Main {
 		System.out.println(board);
 		
 		// create player tracker
-		int player = Board.BLACK; // switches from black to white and back untill win
+		int player = Board_v2.BLACK; // switches from black to white and back untill win
 		int turnCount = 0; // count iterations
 		
 		// timing fields
@@ -38,13 +38,13 @@ public class Main {
 			System.out.println("Start turn " + turnCount++);
 			// display colour moving
 			switch (player) {
-			case Board.BLACK: System.out.println("Black is moving..."); break;
-			case Board.WHITE: System.out.println("White is moving..."); break;
+			case Board_v2.BLACK: System.out.println("Black is moving..."); break;
+			case Board_v2.WHITE: System.out.println("White is moving..."); break;
 			}
 			// get turn start time
 			start = System.nanoTime();
 			// have ai make move
-			if (player==Board.BLACK) {
+			if (player==Board_v2.BLACK) {
 				ArrayList<ArrayList<Integer>> action = aiBlack.getAction();
 				ArrayList<Integer> queenCurrent = action.get(0);
 				ArrayList<Integer> queenMoved = action.get(1);
@@ -68,15 +68,15 @@ public class Main {
 			// display new board
 			System.out.println(board);
 			// switch player
-			player = (player==Board.BLACK) ? (Board.WHITE) : (Board.BLACK);
+			player = (player==Board_v2.BLACK) ? (Board_v2.WHITE) : (Board_v2.BLACK);
 			// break; // TESTING
 		}
 		
 		// declare winner
-		if (player==Board.BLACK) {
+		if (player==Board_v2.BLACK) {
 			System.out.println("Black unable to move. White wins.");
 		}
-		else if (player==Board.WHITE){
+		else if (player==Board_v2.WHITE){
 			System.out.println("White unable to move. Black wins.");
 		}
 		else {

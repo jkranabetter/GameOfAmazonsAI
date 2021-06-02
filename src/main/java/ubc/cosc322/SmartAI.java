@@ -28,7 +28,7 @@ public class SmartAI extends Player {
 		// create base fields
 		super(player,board);
 		// initialize turn counter, will be incremented to starting value on first turn
-		if (this.player==Board.BLACK) {
+		if (this.player==Board_v2.BLACK) {
 			this.turnCount = -2;
 		} 
 		else {
@@ -48,8 +48,9 @@ public class SmartAI extends Player {
 		// increment turn counter
 		this.turnCount += 2;
 		
-//		// perform minimax search at set level
-//		ArrayList<ArrayList<Integer>> bestAction = this.minimax(trueBoard, searchDepth);
+		// update weights 
+		
+		
 		
 		// create pointer to best action
 		ArrayList<ArrayList<Integer>> bestAction = new ArrayList<ArrayList<Integer>>();
@@ -342,7 +343,7 @@ public class SmartAI extends Player {
 				// check if end of turn yet
 				if (this.checkEndTurn()) { break; }
 				// check if empty playable tile
-				if (board.getTile(row, col)==Board.EMPTY) {
+				if (board.getTile(row, col)==Board_v2.EMPTY) {
 					// define tile position
 					ArrayList<Integer> position = new ArrayList<Integer>();
 					position.add(row);
@@ -389,7 +390,7 @@ public class SmartAI extends Player {
 			// check if end of turn yet
 			if (this.checkEndTurn()) { break; }
 			// check if empty tile
-			if (board.getTile(row,col)==Board.EMPTY) {
+			if (board.getTile(row,col)==Board_v2.EMPTY) {
 				// add tile to list
 				ArrayList<Integer> newTile = new ArrayList<Integer>();
 				newTile.add(row);

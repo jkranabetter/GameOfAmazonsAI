@@ -26,17 +26,17 @@ public class Board_v2 {
 		this.tiles = new int[11][11];
 		for (int j=0; j<11; j++) {
 			for (int i=0; i<11; i++) {
-				this.setTile(Board.EMPTY, i, j);
+				this.setTile(Board_v2.EMPTY, i, j);
 			}
 		}
-		this.setTile(Board.BLACK, 10, 4);
-		this.setTile(Board.BLACK, 10, 7);
-		this.setTile(Board.BLACK, 7, 1);
-		this.setTile(Board.BLACK, 7, 10);
-		this.setTile(Board.WHITE, 1, 4);
-		this.setTile(Board.WHITE, 1, 7);
-		this.setTile(Board.WHITE, 4, 1);
-		this.setTile(Board.WHITE, 4, 10);
+		this.setTile(Board_v2.BLACK, 10, 4);
+		this.setTile(Board_v2.BLACK, 10, 7);
+		this.setTile(Board_v2.BLACK, 7, 1);
+		this.setTile(Board_v2.BLACK, 7, 10);
+		this.setTile(Board_v2.WHITE, 1, 4);
+		this.setTile(Board_v2.WHITE, 1, 7);
+		this.setTile(Board_v2.WHITE, 4, 1);
+		this.setTile(Board_v2.WHITE, 4, 10);
 	}
 	
 	/**
@@ -90,7 +90,7 @@ public class Board_v2 {
 	public int getTile(int row, int col) {
 		// check for invalid tile
 		if (row<1 || row>10 || col<1 || col>10) {
-			return Board.OUTOFBOUNDS;
+			return Board_v2.OUTOFBOUNDS;
 		}
 		// return specified tile
 		return this.tiles[row][col];
@@ -154,7 +154,7 @@ public class Board_v2 {
 		// loop through directly reachable empty tiles along straight lines
 		for (int count=0, dx=1, dy=1, row=position.get(0)+dy, col=position.get(1)+dx; count<8; row+=dy, col+=dx) {
 			// check if empty tile
-			if (this.getTile(row,col)==Board.EMPTY) {
+			if (this.getTile(row,col)==Board_v2.EMPTY) {
 				// add tile to list
 				ArrayList<Integer> newTile = new ArrayList<Integer>();
 				newTile.add(row);
@@ -200,7 +200,7 @@ public class Board_v2 {
 			return false;
 		}
 		// check if queenMoved is empty
-		if (this.getTile(queenMoved)!=Board.EMPTY) {
+		if (this.getTile(queenMoved)!=Board_v2.EMPTY) {
 			System.out.println(this.getPlayerColorString(player) + " cannot move queen to " + queenMoved);
 			return false;
 		}
@@ -217,9 +217,9 @@ public class Board_v2 {
 			return false;
 		}
 		// move queen out of queen current
-		this.setTile(Board.EMPTY, queenCurrent);
+		this.setTile(Board_v2.EMPTY, queenCurrent);
 		// check if arrow is empty
-		if (this.getTile(arrow)!=Board.EMPTY) {
+		if (this.getTile(arrow)!=Board_v2.EMPTY) {
 			// reset queen to current position before returning
 			this.setTile(player, queenCurrent);
 			System.out.println(this.getPlayerColorString(player) + "'s arrow can not be thrown to " + arrow);
@@ -288,9 +288,9 @@ public class Board_v2 {
 			System.out.println(this.getPlayerColorString(player) + "'s action is invalid.");
 		}
 		// update board with action
-		this.setTile(Board.EMPTY, queenCurrent);
+		this.setTile(Board_v2.EMPTY, queenCurrent);
 		this.setTile(player, queenMoved);
-		this.setTile(Board.ARROW, arrow);
+		this.setTile(Board_v2.ARROW, arrow);
 	}
 	
 	public void outputActionToConsole(ArrayList<Integer> queenCurrent, 
@@ -305,7 +305,7 @@ public class Board_v2 {
 	 * @return player color in string format
 	 */
 	public String getPlayerColorString(int player) {
-		if (player==Board.BLACK) {
+		if (player==Board_v2.BLACK) {
 			return "Black";
 		}
 		else {
@@ -323,10 +323,10 @@ public class Board_v2 {
 			output += "|";
 			for (int col=1; col<11; col++) {
 				switch (this.tiles[row][col]) {
-				case Board.EMPTY: output += "   "; break;
-				case Board.BLACK: output += " B "; break;
-				case Board.WHITE: output += " W "; break;
-				case Board.ARROW: output += " A "; break;
+				case Board_v2.EMPTY: output += "   "; break;
+				case Board_v2.BLACK: output += " B "; break;
+				case Board_v2.WHITE: output += " W "; break;
+				case Board_v2.ARROW: output += " A "; break;
 				}
 				output += "|";
 			}

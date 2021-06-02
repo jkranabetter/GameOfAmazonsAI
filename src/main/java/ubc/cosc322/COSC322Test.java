@@ -113,7 +113,7 @@ public class COSC322Test extends GamePlayer{
 			if ( this.userName.equalsIgnoreCase( (String)( msgDetails.get(AmazonsGameMessage.PLAYER_BLACK) ) ) ) {
 				// create black ai
 				System.out.println("Creating Black AI");
-				this.ai = new SmartAI(Board.BLACK, this.board);
+				this.ai = new SmartAI(Board_v2.BLACK, this.board);
 				// determine black first move
 				System.out.println("Determining Black AI initial action");
 				ArrayList<ArrayList<Integer>> action = ai.getAction();
@@ -130,7 +130,7 @@ public class COSC322Test extends GamePlayer{
 			else {
 				// create white ai
 				System.out.println("Creating White AI");
-				this.ai = new SmartAI(Board.WHITE, this.board);
+				this.ai = new SmartAI(Board_v2.WHITE, this.board);
 			}
 			
 		}
@@ -140,12 +140,12 @@ public class COSC322Test extends GamePlayer{
 			// version 2 code
 			
 			// read in opponent action to board and gamegui
-			System.out.println("Opponent is " + board.getPlayerColorString((ai.getColorInt()==Board.BLACK)?Board.WHITE:Board.BLACK));
+			System.out.println("Opponent is " + board.getPlayerColorString((ai.getColorInt()==Board_v2.BLACK)?Board_v2.WHITE:Board_v2.BLACK));
 			System.out.println("Reading in action from opponent");
 			ArrayList<Integer> queenCurrent = (ArrayList<Integer>)( msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR) );
 			ArrayList<Integer> queenMoved = (ArrayList<Integer>)( msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT) );
 			ArrayList<Integer> arrow = (ArrayList<Integer>)( msgDetails.get(AmazonsGameMessage.ARROW_POS) );
-			board.applyAction((this.ai.getColorInt()==Board.BLACK)?Board.WHITE:Board.BLACK, queenCurrent, queenMoved, arrow);
+			board.applyAction((this.ai.getColorInt()==Board_v2.BLACK)?Board_v2.WHITE:Board_v2.BLACK, queenCurrent, queenMoved, arrow);
 			System.out.println(board);
 			this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
 			// determine if player has lost

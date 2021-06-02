@@ -15,7 +15,7 @@ public abstract class Player {
 	 */
 	public Player(int playerInt, Board_v2 board) {
 		this.player = playerInt;
-		this.opponent = (this.player==Board.BLACK)?Board.WHITE:Board.BLACK;
+		this.opponent = (this.player==Board_v2.BLACK)?Board_v2.WHITE:Board_v2.BLACK;
 		trueBoard = board;
 	}
 	
@@ -42,7 +42,7 @@ public abstract class Player {
 			// get list of directly reachable empty tiles from queenCurrent
 			ArrayList<ArrayList<Integer>> queenMoves = board.getDirectEmptyTiles(queenCurrent);
 			// erase queenCurrent from its position
-			board.setTile(Board.EMPTY, queenCurrent);
+			board.setTile(Board_v2.EMPTY, queenCurrent);
 			// loop through potential queenMoved positions
 			for (ArrayList<Integer> queenMoved : queenMoves) {
 				// get list of directly reachable empty tiles from queenMoved
