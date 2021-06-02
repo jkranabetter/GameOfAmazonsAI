@@ -14,8 +14,11 @@ public class SmartAI extends Player {
 	 */
 	//-- FIELDS --//
 	long turnStartTime, turnDuration;
+	
 	int searchDepth, turnCount, heuristicType;
-	ArrayList<ArrayList<Integer>> isolatedQueens;
+	
+	ArrayList<ArrayList<Integer>> isolatedQueens; // holds list of positions of queens unable to reach opponent
+	double totalActionsWeight, tileOwnershipWeight; // heuristic weights
 	
 	
 	//-- CONSTRUCTORS --//
@@ -43,59 +46,88 @@ public class SmartAI extends Player {
 	//-- GENERAL METHODS --//
 	@Override
 	public ArrayList<ArrayList<Integer>> getAction() {
-		// initialize turn start time
-		this.turnStartTime = System.nanoTime();
-		// increment turn counter
-		this.turnCount += 2;
+		// do turn start parameter updates
+		this.turnStartTime = System.nanoTime(); // initialize turn start time
+		this.turnCount += 2; // increment turn counter
 		
-		// update weights 
+//		//-- UNCOMMENT BELOW WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
+//		// check if isolatedQueens list filled
+//		if (this.isolatedQueens.size()>=4) {
+//			// do longest path algorithm
+//			ArrayList<ArrayList<Integer>> action = this.findLongestPath(this.isolatedQueens);
+//			return action;
+//		}
+//		//-- UNCOMMENT ABOVE WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
 		
-		
-		
-		// create pointer to best action
-		ArrayList<ArrayList<Integer>> bestAction = new ArrayList<ArrayList<Integer>>();
-		// perform iterative minimax search 
-		for (int i=searchDepth; true; i++) {
-			// check if end of turn yet
-			if (this.checkEndTurn()) { break; }
-			// begin iteration
-			System.out.println("Beginning iteration " + i);
-			// do minimax search to depth i
-			ArrayList<ArrayList<Integer>> action = this.minimax(trueBoard, i);
-			// check if initializing bestAction
-			if (bestAction.isEmpty()) {
-				bestAction = action;
-			}
-			// check if updating to same action -> can stop b/c confirmed best action
-			if (action.get(0).equals(bestAction.get(0)) && action.get(1).equals(bestAction.get(1)) && action.get(2).equals(bestAction.get(2))) {
-				break;
-			}
-			// check if new action is better
-			if (action.get(3).get(0)>=bestAction.get(3).get(0)) {
-				System.out.println("Updating best action");
-				bestAction = action;
-			}
+		// update heuristic weights for scoreBoard formula -> temporary form currently
+		if (turnCount>=0) {
+			totalActionsWeight = 1;
+			tileOwnershipWeight = 0;
 		}
-		// remove score from action list
-		bestAction.remove(bestAction.size()-1);
-		// return action 
-		return bestAction;
+		else if (turnCount>=25) {
+			totalActionsWeight = 0.5;
+			tileOwnershipWeight = 0.5;
+		}
+		else if (turnCount>=50) {
+			totalActionsWeight = 0;
+			tileOwnershipWeight = 1;
+		}
+		
+		// perform iterative minimax
+		ArrayList<ArrayList<Integer>> action = this.iterativeMinimax(searchDepth, this.trueBoard);
+		
+		// return best action from iterative minimax
+		return action;
 		
 	}
 	
 	/**
-	 * Initialize ai fields that dictate how it searches as well as initialize turn counter
-	 * use to change parameters of 2 smart ai in main file so as to compare and contrast
-	 * @param turnDuration time on turn at which ai should begin exiting out of loops to end turn
-	 * @param searchDepth depth for minimax algorithm to stop searching at
+	 * uncomment lines for queen isolation technique
 	 */
-	public void changeAIFields(int searchDepth, int heuristicType) {
-		// set search depth
-		this.searchDepth = searchDepth;
-		// set heuristic type
-		this.heuristicType = heuristicType;
+	@Override
+	public ArrayList<ArrayList<ArrayList<Integer>>> getAllActions(int player, Board_v2 board) {
+		// copy board to not accidentally change it
+		board = new Board_v2(board);
+		// create list to store actions
+		ArrayList<ArrayList<ArrayList<Integer>>> actions = new ArrayList<ArrayList<ArrayList<Integer>>>();
+		// get list of passed player's queens
+		ArrayList<ArrayList<Integer>> queens = board.getQueens(player);
+		// loop through potential queenCurrent positions
+		for (ArrayList<Integer> queenCurrent : queens) {
+			
+//			//-- UNCOMMENT BELOW WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
+//			// check if queen on isolation list ie can be skipped
+//			if (this.isOnIsolationList(queenCurrent)) {
+//				// switch to next queen without bothering to get moves of this one
+//				continue;
+//			}
+//			//-- UNCOMMENT ABOVE WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
+			
+			// get list of directly reachable empty tiles from queenCurrent
+			ArrayList<ArrayList<Integer>> queenMoves = board.getDirectEmptyTiles(queenCurrent);
+			// erase queenCurrent from its position
+			board.setTile(Board_v2.EMPTY, queenCurrent);
+			// loop through potential queenMoved positions
+			for (ArrayList<Integer> queenMoved : queenMoves) {
+				// get list of directly reachable empty tiles from queenMoved
+				ArrayList<ArrayList<Integer>> arrows = board.getDirectEmptyTiles(queenMoved);
+				// loop through potential arrow positions
+				for (ArrayList<Integer> arrow : arrows) {
+					// create action
+					ArrayList<ArrayList<Integer>> action = new ArrayList<ArrayList<Integer>>();
+					action.add(queenCurrent);
+					action.add(queenMoved);
+					action.add(arrow);
+					// add action to list
+					actions.add(action);
+				}
+			}
+			// add queenCurrent back to board
+			board.setTile(player, queenCurrent);
+		}
+		// return list of actions
+		return actions;
 	}
-	
 	
 	public boolean checkEndTurn() {
 		// check if end of turn yet
@@ -108,22 +140,68 @@ public class SmartAI extends Player {
 	}
 	
 	/**
-	 * check for queens who dont need to contribute to search tree
-	 * can just find longest path
-	 * will need to change getActions loop to skip isolated queens
+	 * Use heuristic functions to determine a score for the passed board
+	 * will need to be updated for future heuristic functions
+	 * Example Formula : score() = weight*totalActions() + weight*controllingRegion() + weight*trappingOpponents()
+	 * @param board board to give score to
+	 * @return score for passed board
 	 */
-	public void findIsolatedQueens() {
-		// get all player's queens on trueBoard
-		ArrayList<ArrayList<Integer>> queens = this.trueBoard.getQueens(this.player);
-		// loop through queens
-		for (ArrayList<Integer> queen : queens) {
-			// check if disconnected from all opponent queens
-			
+	public int scoreBoard(Board_v2 board) {
+		// determine which heuristic functions need to be called
+		int score = 0;
+		if (totalActionsWeight>0 && tileOwnershipWeight>0) {
+			score = (int) ( this.totalActionsWeight * this.totalActionsHeuristic(board) + this.tileOwnershipWeight * this.tileOwnershipHeuristic(board) );
+		}
+		else if (totalActionsWeight>0) {
+			score = (int) (this.totalActionsWeight * this.totalActionsHeuristic(board));
+		}
+		else if (tileOwnershipWeight>0) {
+			score = (int) (this.tileOwnershipWeight * this.tileOwnershipHeuristic(board));
 		}
 		
+		// System.out.println("Gave score of " + score);
+		return score;
 	}
+
 	
 	//-- MINIMAX ALGORITHM --//
+	
+	/**
+	 * calls minimax searches with increasingly larger depths until turn timer cuts it off
+	 * @param initialDepth
+	 * @param board
+	 * @return best action found 
+	 */
+	public ArrayList<ArrayList<Integer>> iterativeMinimax(int initialDepth, Board_v2 board) {
+		// create pointer to best action
+		ArrayList<ArrayList<Integer>> bestAction = new ArrayList<ArrayList<Integer>>();
+		// perform iterative minimax search 
+		for (int i=initialDepth; true; i++) {
+			// check if end of turn yet
+			if (this.checkEndTurn()) { break; }
+			// begin iteration
+			System.out.println("Beginning iteration " + i); // testing
+			// do minimax search to depth i
+			ArrayList<ArrayList<Integer>> action = this.minimax(board, i);
+			// check if initializing bestAction
+			if (bestAction.isEmpty()) {
+				bestAction = action;
+			}
+			// check if updating to same action -> can stop b/c confirmed best action
+			else if (action.get(0).equals(bestAction.get(0)) && action.get(1).equals(bestAction.get(1)) && action.get(2).equals(bestAction.get(2))) {
+				break;
+			}
+			// check if new action is better
+			else if (action.get(3).get(0)>=bestAction.get(3).get(0)) {
+				System.out.println("Updating best action"); // testing
+				bestAction = action;
+			}
+		}
+		// remove score from action list
+		bestAction.remove(bestAction.size()-1);
+		// return action 
+		return bestAction;
+	}
 	
 	/**
 	 * First layer of minimax algorithm
@@ -291,22 +369,6 @@ public class SmartAI extends Player {
 		return worstScore;
 	}
 	
-	/**
-	 * Use heuristic functions to determine a score for the passed board
-	 * temporary form currently
-	 * @param board board to give score to
-	 * @return score for board
-	 */
-	public int scoreBoard(Board_v2 board) {
-		int score;
-		switch (this.heuristicType) {
-		case 0: score = this.totalActionsHeuristic(board); break;
-		case 1: score = this.tileOwnershipHeuristic(board); break;
-		default: score = 0;
-		}
-		// System.out.println("Gave score of " + score);
-		return score;
-	}
 	
 	//-- HEURISTICS FUNCTIONS --//
 	
@@ -520,5 +582,82 @@ public class SmartAI extends Player {
 		return 0; // temp
 	}
 	
+	
+	//-- ISOLATED QUEENS TECHNIQUE METHODS --//
+	/**
+	 * check for queens who dont need to contribute to search tree rn
+	 * can just find longest path
+	 * will need to change getActions loop to skip isolated queens
+	 */
+	public void findIsolatedQueens(Board_v2 board, int player) {
+		// get all player's queens on trueBoard
+		ArrayList<ArrayList<Integer>> queens = board.getQueens(player);
+		// loop through queens
+		for (ArrayList<Integer> queen : queens) {
+			// check if disconnected from all opponent queens
+			if (this.isIsolated(board, queen)) {
+				// add isolated queen to list
+				this.isolatedQueens.add(queen);
+			}
+		}
+	}
+	
+	/**
+	 * INCOMPLETE METHOD
+	 * determine if passed queen is isolated from all opponent queens
+	 * @param board
+	 * @param queen
+	 * @return
+	 */
+	public boolean isIsolated(Board_v2 board, ArrayList<Integer> queen) {
+		// determine if queen can reach an opponent queen
+		
+		// temporary return
+		return false;
+	}
+	
+	/**
+	 * determine if passed queen has been found to be isolated
+	 * @param queen
+	 * @return
+	 */
+	public boolean isOnIsolationList(ArrayList<Integer> queen) {
+		for (ArrayList<Integer> isolated: this.isolatedQueens) {
+			if (isolated.get(0).equals(queen.get(0)) && isolated.get(1).equals(queen.get(1))) {
+				// matches list item
+				return true;
+			}
+		}
+		// otherwise
+		return false;
+	}
+	
+	/**
+	 * INCOMPLETE METHOD
+	 * find first action for longest path 
+	 * @param queens
+	 * @return
+	 */
+	public ArrayList<ArrayList<Integer>> findLongestPath(ArrayList<ArrayList<Integer>> queens) {
+		// find size of room for first isolated queen with at least 1 action left 
+		// perform minimax at depth of room size, stop when found route all the way to depth size, score using depth of board
+		return null;
+	}
+	
+	
+	//-- EXTRA METHODS --//
+	/**
+	 * TESTING FUNCTION, USED TO PIT OWN AI AGAINST ITSELF WITH DIFFERENT STATS
+	 * Initialize ai fields that dictate how it searches as well as initialize turn counter
+	 * use to change parameters of 2 smart ai in main file so as to compare and contrast
+	 * @param turnDuration time on turn at which ai should begin exiting out of loops to end turn
+	 * @param searchDepth depth for minimax algorithm to stop searching at
+	 */
+	public void changeAIFields(int searchDepth, int heuristicType) {
+		// set search depth
+		this.searchDepth = searchDepth;
+		// set heuristic type
+		this.heuristicType = heuristicType;
+	}
 	
 }

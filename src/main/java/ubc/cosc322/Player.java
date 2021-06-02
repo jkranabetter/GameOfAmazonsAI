@@ -26,6 +26,7 @@ public abstract class Player {
 	
 	/**
 	 * Get all possible actions passed player can make on passed board
+	 * basic version, is overwritten by SmartAI to incorporate some faster techniques
 	 * @param player
 	 * @param board
 	 * @return list of actions in form [queenCurrent, queenMoved, arrow]

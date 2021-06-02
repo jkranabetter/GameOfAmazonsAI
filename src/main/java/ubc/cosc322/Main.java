@@ -11,8 +11,8 @@ public class Main {
 		Board_v2 board = new Board_v2();
 		
 		// create ai
-		Player aiBlack = new RandomAI_v2(Board_v2.BLACK, board);
-		Player aiWhite = new RandomAI_v2(Board_v2.WHITE, board);
+		Player aiBlack = new SmartAI(Board_v2.BLACK, board);
+		Player aiWhite = new SmartAI(Board_v2.WHITE, board);
 		
 		// set ai parameters
 		if (aiBlack instanceof SmartAI) {
