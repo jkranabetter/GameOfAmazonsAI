@@ -15,7 +15,7 @@ public class SmartAI extends Player {
 	//-- FIELDS --//
 	long turnStartTime, turnDuration;
 	
-	int searchDepth, turnCount, heuristicType;
+	int searchDepth, turnCount;
 	
 	ArrayList<ArrayList<Integer>> isolatedQueens; // holds list of positions of queens unable to reach opponent
 	double totalActionsWeight, tileOwnershipWeight; // heuristic weights
@@ -59,16 +59,19 @@ public class SmartAI extends Player {
 //		}
 //		//-- UNCOMMENT ABOVE WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
 		
-		// update heuristic weights for scoreBoard formula -> temporary form currently
+		// update heuristic weights for scoreBoard() method -> temporary form currently
 		if (turnCount>=0) {
+			System.out.println("Phase 1");
 			totalActionsWeight = 1;
 			tileOwnershipWeight = 0;
 		}
 		else if (turnCount>=25) {
+			System.out.println("Phase 2");
 			totalActionsWeight = 0.5;
 			tileOwnershipWeight = 0.5;
 		}
 		else if (turnCount>=50) {
+			System.out.println("Phase 3");
 			totalActionsWeight = 0;
 			tileOwnershipWeight = 1;
 		}
@@ -540,9 +543,16 @@ public class SmartAI extends Player {
 		return smallestDepth;
 	}
 	
+	/**
+	 * NOT IN USE but has better structure than previous version which is slow -> complete recursive function at some point
+	 * @param board
+	 * @return
+	 */
 	public int tileOwnershipHeuristic_v2(Board_v2 board) {
 		// create array to hold which tiles belong to which player
 		int[][] tiles = new int[11][11];
+		// create holder of total board score
+		int score = 0;
 		// loop through tiles whos ownership have not yet been found
 		for (int row=1; row<11; row++) {
 			// check if end of turn yet
@@ -550,23 +560,30 @@ public class SmartAI extends Player {
 			for (int col=1; col<11; col++) {
 				// check if end of turn yet
 				if (this.checkEndTurn()) { break; }
-				// check if tile ownership already found
+				// check if tile ownership potentially not found (0 is default but also neutral tile)
 				if (tiles[row][col]==0) {
-					// skip
-					continue;
+					// get ownership of tile by recursing into it
+					ArrayList<Integer> position = new ArrayList<Integer>();
+					position.add(row);
+					position.add(col);
+					tiles[row][col] = this.tileOwnershipHeuristicRecurse_v2(tiles, board, position, 1);
 				}
-				// get ownership of tile by recursing into it
-				ArrayList<Integer> position = new ArrayList<Integer>();
-				position.add(row);
-				position.add(col);
-				tiles[row][col] = this.tileOwnershipHeuristicRecurse_v2(tiles, board, position, 1);
+				// increment or decrement total score of board
+				if (tiles[row][col]>0) {
+					score++;
+				}
+				else if (tiles[row][col]<0) {
+					score--;
+				}
 			}
 		}
-		return 0; // temp
+		// return total board score
+		return score;
 	}
 	
 	/**
 	 * get ownership of passed tile and recurse into reachable tiles getting their closests
+	 * NOT COMPLETED
 	 * @param tiles 2d array to place ownership value into for each tile
 	 * @param board
 	 * @param position
@@ -647,17 +664,13 @@ public class SmartAI extends Player {
 	
 	//-- EXTRA METHODS --//
 	/**
-	 * TESTING FUNCTION, USED TO PIT OWN AI AGAINST ITSELF WITH DIFFERENT STATS
-	 * Initialize ai fields that dictate how it searches as well as initialize turn counter
-	 * use to change parameters of 2 smart ai in main file so as to compare and contrast
-	 * @param turnDuration time on turn at which ai should begin exiting out of loops to end turn
-	 * @param searchDepth depth for minimax algorithm to stop searching at
+	 * FUNCTION FOR TESTING PURPOSES
+	 * used to have 2 ai play each other in main file with different initial search depths
+	 * @param searchDepth
 	 */
-	public void changeAIFields(int searchDepth, int heuristicType) {
+	public void setInitialSearchDepth(int searchDepth) {
 		// set search depth
 		this.searchDepth = searchDepth;
-		// set heuristic type
-		this.heuristicType = heuristicType;
 	}
 	
 }

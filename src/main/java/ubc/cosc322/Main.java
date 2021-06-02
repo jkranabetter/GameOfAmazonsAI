@@ -16,10 +16,10 @@ public class Main {
 		
 		// set ai parameters
 		if (aiBlack instanceof SmartAI) {
-			((SmartAI) aiBlack).changeAIFields(2, 0); // set black to use totalActions heuristic
+			((SmartAI) aiBlack).setInitialSearchDepth(3);
 		}
 		if (aiWhite instanceof SmartAI) {
-			((SmartAI) aiWhite).changeAIFields(2, 1); // set white to use tileOwnership heuristic
+			((SmartAI) aiWhite).setInitialSearchDepth(2); 
 		}
 		
 		// print initial board state
