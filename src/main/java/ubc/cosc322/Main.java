@@ -14,14 +14,6 @@ public class Main {
 		Player aiBlack = new SmartAI(Board_v2.BLACK, board);
 		Player aiWhite = new SmartAI(Board_v2.WHITE, board);
 		
-		// set ai parameters
-		if (aiBlack instanceof SmartAI) {
-			((SmartAI) aiBlack).setInitialSearchDepth(3);
-		}
-		if (aiWhite instanceof SmartAI) {
-			((SmartAI) aiWhite).setInitialSearchDepth(2); 
-		}
-		
 		// print initial board state
 		System.out.println(board);
 		

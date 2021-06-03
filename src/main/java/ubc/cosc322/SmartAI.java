@@ -18,6 +18,9 @@ public class SmartAI extends Player {
 	int searchDepth, turnCount;
 	
 	ArrayList<ArrayList<Integer>> isolatedQueens; // holds list of positions of queens unable to reach opponent
+	ArrayList<ArrayList<Integer>> trappedQueens; // holds queens who can no longer move
+	boolean inFinalPhase; // flipped to true when all queens are isolated
+	
 	double totalActionsWeight, tileOwnershipWeight; // heuristic weights
 	
 	
@@ -39,8 +42,12 @@ public class SmartAI extends Player {
 		}
 		// set turn duration
 		this.turnDuration = 28; // gives 2 seconds to get out of multiple layers of loops
-		// initialize isolated queens to empty
+		// set search depth
+		this.searchDepth = 1; // depth of 0 and 1 are same, dont set to 0
+		// initialize isolated queens and trapped queens to empty
 		this.isolatedQueens = new ArrayList<ArrayList<Integer>>();
+		this.trappedQueens = new ArrayList<ArrayList<Integer>>();
+		this.inFinalPhase = false;
 	}
 
 	//-- GENERAL METHODS --//
@@ -49,23 +56,27 @@ public class SmartAI extends Player {
 		// do turn start parameter updates
 		this.turnStartTime = System.nanoTime(); // initialize turn start time
 		this.turnCount += 2; // increment turn counter
+		this.findIsolatedOrTrappedQueens(trueBoard, this.player); // update isolated and trapped queens lists
 		
-//		//-- UNCOMMENT BELOW WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
-//		// check if isolatedQueens list filled
-//		if (this.isolatedQueens.size()>=4) {
-//			// do longest path algorithm
-//			ArrayList<ArrayList<Integer>> action = this.findLongestPath(this.isolatedQueens);
-//			return action;
-//		}
-//		//-- UNCOMMENT ABOVE WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
+		//-- UNCOMMENT BELOW WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
+		// check if isolatedQueens list filled
+		if (this.isolatedQueens.size()+this.trappedQueens.size()>=4) {
+			// trigger final phase
+			System.out.println("Final phase");
+			this.inFinalPhase = true;
+			// do longest path algorithm
+			ArrayList<ArrayList<Integer>> action = this.findLongestPath(this.isolatedQueens);
+			return action;
+		}
+		//-- UNCOMMENT ABOVE WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
 		
 		// update heuristic weights for scoreBoard() method -> temporary form currently
-		if (turnCount>=0) {
+		if (turnCount<25) {
 			System.out.println("Phase 1");
 			totalActionsWeight = 1;
 			tileOwnershipWeight = 0;
 		}
-		else if (turnCount>=25) {
+		else if (turnCount<50) {
 			System.out.println("Phase 2");
 			totalActionsWeight = 0.5;
 			tileOwnershipWeight = 0.5;
@@ -98,13 +109,13 @@ public class SmartAI extends Player {
 		// loop through potential queenCurrent positions
 		for (ArrayList<Integer> queenCurrent : queens) {
 			
-//			//-- UNCOMMENT BELOW WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
-//			// check if queen on isolation list ie can be skipped
-//			if (this.isOnIsolationList(queenCurrent)) {
-//				// switch to next queen without bothering to get moves of this one
-//				continue;
-//			}
-//			//-- UNCOMMENT ABOVE WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
+			//-- UNCOMMENT BELOW WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
+			// check if queen on isolation/trapped lists ie can be skipped unless on final phase
+			if ( this.inFinalPhase==false && (this.isOnIsolationList(queenCurrent) || this.isOnTrappedList(queenCurrent)) ) {
+				// switch to next queen without bothering to get moves of this one
+				continue;
+			}
+			//-- UNCOMMENT ABOVE WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
 			
 			// get list of directly reachable empty tiles from queenCurrent
 			ArrayList<ArrayList<Integer>> queenMoves = board.getDirectEmptyTiles(queenCurrent);
@@ -192,11 +203,12 @@ public class SmartAI extends Player {
 			}
 			// check if updating to same action -> can stop b/c confirmed best action
 			else if (action.get(0).equals(bestAction.get(0)) && action.get(1).equals(bestAction.get(1)) && action.get(2).equals(bestAction.get(2))) {
+				System.out.println("Confirmed action, exiting early"); // testing
 				break;
 			}
 			// check if new action is better
 			else if (action.get(3).get(0)>=bestAction.get(3).get(0)) {
-				System.out.println("Updating best action"); // testing
+				// System.out.println("Updating best action"); // testing
 				bestAction = action;
 			}
 		}
@@ -606,13 +618,21 @@ public class SmartAI extends Player {
 	 * can just find longest path
 	 * will need to change getActions loop to skip isolated queens
 	 */
-	public void findIsolatedQueens(Board_v2 board, int player) {
+	public void findIsolatedOrTrappedQueens(Board_v2 board, int player) {
+		// reset trapped and isolated queens list
+		this.trappedQueens = new ArrayList<ArrayList<Integer>>();
+		this.isolatedQueens = new ArrayList<ArrayList<Integer>>();
 		// get all player's queens on trueBoard
 		ArrayList<ArrayList<Integer>> queens = board.getQueens(player);
 		// loop through queens
 		for (ArrayList<Integer> queen : queens) {
-			// check if disconnected from all opponent queens
-			if (this.isIsolated(board, queen)) {
+			// check if trapped queen
+			if (this.isTrapped(board, queen)) {
+				// add trapped queen to list
+				this.trappedQueens.add(queen);
+			}
+			// check if disconnected from all opponent queens (only if not already trapped)
+			else if (this.isIsolated(board, queen)) {
 				// add isolated queen to list
 				this.isolatedQueens.add(queen);
 			}
@@ -620,21 +640,77 @@ public class SmartAI extends Player {
 	}
 	
 	/**
-	 * INCOMPLETE METHOD
 	 * determine if passed queen is isolated from all opponent queens
 	 * @param board
 	 * @param queen
 	 * @return
 	 */
 	public boolean isIsolated(Board_v2 board, ArrayList<Integer> queen) {
+		// get target colour = opponent layer
+		int opponent = (board.getTile(queen)==Board_v2.WHITE)?Board_v2.BLACK:Board_v2.WHITE;
 		// determine if queen can reach an opponent queen
-		
-		// temporary return
-		return false;
+		boolean opponentFound = this.recurseAdjacentTilesForTarget(board, new boolean[11][11], opponent, queen.get(0), queen.get(1));
+		if (opponentFound==false) {
+			System.out.println("Queen at " + queen + " is isolated");
+		}
+		return !opponentFound;
 	}
 	
 	/**
-	 * determine if passed queen has been found to be isolated
+	 * 
+	 * @param board board to look on
+	 * @param recursed tells when positions have already been recursed into
+	 * @param target tile to type to check for 
+	 * @param position
+	 * @return
+	 */
+	public boolean recurseAdjacentTilesForTarget(Board_v2 board, boolean[][] recursed, int target, int row, int col) {
+		// add tile to checked array
+		recursed[row][col] = true;
+		// check if target -> return true, stop recursing
+		if (board.getTile(row,col)==target) {
+			return true;
+		}
+		// check if arrow (stop recursing)
+		if (board.getTile(row,col)==Board_v2.ARROW) {
+			return false;
+		}
+		// check all 8 adjacent tiles including diagonals
+		for (int i=0; i<8; i++) {
+			int j, k;
+			switch (i) {
+			case 0: j=0; k=1; break;
+			case 1: j=1; k=1; break;
+			case 2: j=1; k=0; break;
+			case 3: j=1; k=-1; break;
+			case 4: j=0; k=-1; break;
+			case 5: j=-1; k=-1; break;
+			case 6: j=-1; k=0; break;
+			case 7: j=-1; k=1; break;
+			default: j=0; k=0; 
+			}
+			// check if invalid position to recurse into
+			if (board.getTile(row+j, col+k)==Board_v2.OUTOFBOUNDS) {
+				// skip out of bounds position
+				continue;
+			}
+			// check if already recursed
+			if (recursed[row+j][col+k]==true) {
+				// skip already recursed position
+				continue;
+			}
+			// recurse into adjacent tile
+			if (this.recurseAdjacentTilesForTarget(board, recursed, target, row+j, col+k)) {
+				// adjacent tile found target, 
+				return true;
+			}
+		}
+		// no adjacent tile ticked true, therefore false
+		return false; 
+	}
+	
+	/**
+	 * determine if passed queen has already been found to be isolated
 	 * @param queen
 	 * @return
 	 */
@@ -650,27 +726,93 @@ public class SmartAI extends Player {
 	}
 	
 	/**
-	 * INCOMPLETE METHOD
 	 * find first action for longest path 
+	 * not at all the best way to do it
+	 * has not been tested, but could probably use an actual longest path algorithm
 	 * @param queens
 	 * @return
 	 */
 	public ArrayList<ArrayList<Integer>> findLongestPath(ArrayList<ArrayList<Integer>> queens) {
-		// find size of room for first isolated queen with at least 1 action left 
-		// perform minimax at depth of room size, stop when found route all the way to depth size, score using depth of board
-		return null;
+		// find size of room
+		int size = this.recurseAdjacentTilesForSize(trueBoard, new boolean[11][11], player, queens.get(0).get(0), queens.get(0).get(1));
+		// perform minimax to size
+		return this.minimax(trueBoard, size);
 	}
 	
+	public int recurseAdjacentTilesForSize(Board_v2 board, boolean[][] recursed, int player, int row, int col) {
+		// add tile to checked array
+		recursed[row][col] = true;
+		// create base score to add to
+		int score = 0;
+		// check if arrow (stop recursing)
+		if (board.getTile(row,col)==Board_v2.ARROW || board.getTile(row,col)==player) {
+			return 0;
+		}
+		// check if queen (
+		// check all 8 adjacent tiles including diagonals
+		for (int i=0; i<8; i++) {
+			int j, k;
+			switch (i) {
+			case 0: j=0; k=1; break;
+			case 1: j=1; k=1; break;
+			case 2: j=1; k=0; break;
+			case 3: j=1; k=-1; break;
+			case 4: j=0; k=-1; break;
+			case 5: j=-1; k=-1; break;
+			case 6: j=-1; k=0; break;
+			case 7: j=-1; k=1; break;
+			default: j=0; k=0; 
+			}
+			// check if invalid position to recurse into
+			if (board.getTile(row+j, col+k)==Board_v2.OUTOFBOUNDS) {
+				// skip out of bounds position
+				continue;
+			}
+			// check if already recursed
+			if (recursed[row+j][col+k]==true) {
+				// skip already recursed position
+				continue;
+			}
+			// recurse into adjacent tile adding to total score
+			score += this.recurseAdjacentTilesForSize(board, recursed, player, row+j, col+k);
+			
+		}
+		// return new score 
+		return score;
+		
+	}
 	
-	//-- EXTRA METHODS --//
 	/**
-	 * FUNCTION FOR TESTING PURPOSES
-	 * used to have 2 ai play each other in main file with different initial search depths
-	 * @param searchDepth
+	 * determine whether passed queen has no actions left
+	 * @param board
+	 * @param queen
+	 * @return
 	 */
-	public void setInitialSearchDepth(int searchDepth) {
-		// set search depth
-		this.searchDepth = searchDepth;
+	public boolean isTrapped(Board_v2 board, ArrayList<Integer> queen) {
+		// check if any tiles to move to
+		if (board.getDirectEmptyTiles(queen).isEmpty()) {
+			return true;
+		}
+		return false;
 	}
 	
+	/**
+	 * determine if passed queen has been previously found to have no actions left
+	 * @param queen
+	 * @return
+	 */
+	public boolean isOnTrappedList(ArrayList<Integer> queen) {
+		for (ArrayList<Integer> trapped: this.trappedQueens) {
+			if (trapped.get(0).equals(queen.get(0)) && trapped.get(1).equals(queen.get(1))) {
+				// matches list item
+				return true;
+			}
+		}
+		// otherwise
+		return false;
+	}
+	
+
+	
+
 }
