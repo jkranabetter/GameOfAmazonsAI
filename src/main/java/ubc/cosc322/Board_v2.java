@@ -10,6 +10,9 @@ public class Board_v2 {
 	public static final int ARROW = 3;
 	public static final int OUTOFBOUNDS = 4;
 	
+	public static final int GATEWAY = -1; // region tile value, empty with certain adjacent walls
+	public static final int WALL = -2; // region tile value , arrow or out of bounds
+	
 	//-- FIELDS --//
 	/**
 	 * 2d positional dataframe for board
@@ -18,17 +21,22 @@ public class Board_v2 {
 	 */
 	protected int[][] tiles;
 	
+	protected int[][] regionTiles; // holds identifier of region this tile belongs to, -1 for arrows
+	ArrayList<Region> regions;
+	
 	//-- CONSTRUCTORS --//
 	/**
 	 * Create board with manual inputted queen locations
 	 */
 	public Board_v2() {
+		// initialize tiles to empty -> loop not technically needed since Board_v2.EMPTY==0
 		this.tiles = new int[11][11];
 		for (int j=0; j<11; j++) {
 			for (int i=0; i<11; i++) {
 				this.setTile(Board_v2.EMPTY, i, j);
 			}
 		}
+		// manually add starting positions of queens to tiles
 		this.setTile(Board_v2.BLACK, 10, 4);
 		this.setTile(Board_v2.BLACK, 10, 7);
 		this.setTile(Board_v2.BLACK, 7, 1);
@@ -37,10 +45,27 @@ public class Board_v2 {
 		this.setTile(Board_v2.WHITE, 1, 7);
 		this.setTile(Board_v2.WHITE, 4, 1);
 		this.setTile(Board_v2.WHITE, 4, 10);
+		
+		// create lists for region identifiers and regions themselves
+		this.regionTiles = new int[11][11];
+		this.regions = new ArrayList<Region>();
+		// get positions of all tiles and put in list
+		ArrayList<ArrayList<Integer>> positions = new ArrayList<ArrayList<Integer>>();
+		for (int row=1; row<11; row++) {
+			for (int col=1; col<11; col++) {
+				ArrayList<Integer> position = new ArrayList<Integer>();
+				position.add(row);
+				position.add(col);
+				positions.add(position);
+			}
+		}
+		// add to regions list new region passing tiles to put in and empty list of gateways
+		this.regions.add( new Region(this, positions, new ArrayList<ArrayList<Integer>>()) );
 	}
 	
 	/**
 	 * Create board from server message details in game action start
+	 * NOT IMPLEMENTED but turns out not needed
 	 * @param gameState list recieved from server message details 
 	 */
 	public Board_v2(ArrayList<Integer> gameState) {
@@ -53,6 +78,8 @@ public class Board_v2 {
 	 */
 	public Board_v2(Board_v2 original) {
 		this.tiles = new int[11][11];
+		this.regionTiles = new int[11][11];
+		this.regions = new ArrayList<Region>();
 		this.clone(original);
 	}
 	
@@ -110,11 +137,16 @@ public class Board_v2 {
 	 * @param original board to clone
 	 */
 	public void clone(Board_v2 original) {
+		// copy tile values and region values
 		for (int row=1; row<11; row++) {
 			for (int col=1; col<11; col++) {
 				this.setTile(original.getTile(row,col), row, col);
+				this.setRegionTile(original.getRegionTile(row,col), row, col);
 			}
 		}
+		// copy regions
+		this.regions = original.getRegionsList();
+		
 	}
 	
 	/**
@@ -291,6 +323,8 @@ public class Board_v2 {
 		this.setTile(Board_v2.EMPTY, queenCurrent);
 		this.setTile(player, queenMoved);
 		this.setTile(Board_v2.ARROW, arrow);
+		// update regions with action
+		this.updateRegions(arrow);
 	}
 	
 	public void outputActionToConsole(ArrayList<Integer> queenCurrent, 
@@ -337,4 +371,128 @@ public class Board_v2 {
 		// output += "  1   2   3   4   5   6   7   8   9   10 \n";
 		return output;
 	}
+	
+	
+	
+	//-- REGION METHODS --//
+	
+	/**
+	 * Get id of region containing passed tile
+	 * @param row
+	 * @param col
+	 * @return region id otherwise WALL value(-2)
+	 */
+	public int getRegionTile(int row, int col) {
+		// check if tile is invalid or an arrow
+		if (this.getTile(row,col)==Board_v2.OUTOFBOUNDS || this.getTile(row,col)==Board_v2.ARROW) {
+			// return wall value, tile isn't tied to any region
+			return Board_v2.WALL;
+		}
+		// return region id
+		return this.regionTiles[row][col];
+	}
+	/**
+	 * Set passed tile position to regionId if not out of bounds or arrow
+	 * @param regionId
+	 * @param row
+	 * @param col
+	 */
+	public void setRegionTile(int regionId, int row, int col) {
+		// check if out of bounds 
+		if (this.getTile(row,col)==Board_v2.ARROW || this.getTile(row,col)==Board_v2.OUTOFBOUNDS) {
+			// do nothing
+			return;
+		}
+		// check if arrow
+		if (this.getTile(row,col)==Board_v2.ARROW) {
+			// set only to wall value
+			this.setRegionTile(Board_v2.WALL, row, col);
+		}
+		// set tile to region id
+		this.regionTiles[row][col] = regionId;
+	}
+
+	/**
+	 * Get list of regions in this board state
+	 * @return list of regions
+	 */
+	public ArrayList<Region> getRegionsList() {
+		return (ArrayList<Region>) this.regions.clone();
+	}
+	
+	/**
+	 * Determine if passed tile position qualifies as a gateway
+	 * use switch statement with all the different possible gateways and see if it matches
+	 * @param position
+	 * @return true if passed position is a gateway
+	 */
+	public boolean isGateway(int row, int col) {
+		// look at adjacent tiles and save which ones are walls
+		// switch through the different gateway types and return true once it matches one
+		// return false as default
+		return false; // temp
+	}
+	
+	/**
+	 * Update board's regions
+	 * add wall, add/remove gateways, add/remove adjacent region connections, partition regions
+	 * @param arrow position of arrow thrown by action sent to applyAction() 
+	 */
+	public void updateRegions(ArrayList<Integer> arrow) {
+		// update arrow position to wall on region board
+		// check adjacent tiles to throw arrow for newly created gateways
+		// for each new gateway, add it to region(s) it touches (directly or through adjacent gates)
+		// if both sides of gate are same region, recurse to see if partition can be made
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * REDOING
+	 * when player places arrow, check adjacent tiles for if theyve become gateways
+	 * @param arrow position to check adjacent tiles of for gateways
+	 */
+	public void checkForNewGateways(ArrayList<Integer> arrow) {
+		// check all 8 adjacent tiles including diagonals
+		for (int i=0; i<8; i++) {
+			int j, k;
+			switch (i) {
+			case 0: j=0; k=1; break;
+			case 1: j=1; k=1; break;
+			case 2: j=1; k=0; break;
+			case 3: j=1; k=-1; break;
+			case 4: j=0; k=-1; break;
+			case 5: j=-1; k=-1; break;
+			case 6: j=-1; k=0; break;
+			case 7: j=-1; k=1; break;
+			default: j=0; k=0; 
+			}
+			// check adjacent tile for gateway
+			if (this.isGateway(arrow.get(0)+j, arrow.get(1)+k)) {
+				// change region board value
+				this.setRegionTile(Board_v2.GATEWAY, arrow.get(0)+j, arrow.get(1)+k);
+				// check for new region -> USE RECURSIVE TECHNIQUE TO LOOP AROUND GATE
+				this.checkForRegionPartition(arrow.get(0)+j, arrow.get(1)+k);
+			}
+		}
+	}
+	/**
+	 * REDOING -> WELL RENAMING AND POTENTIALLY REDESCRIBING
+	 * call recursive function to loop through adjacent tiles
+	 * stop early if other side of gateway is found
+	 * if never found, then use found tiles to create new region
+	 * @param gatewayRow
+	 * @param gatewayCol
+	 */
+	public void checkForRegionPartition(int gatewayRow, int gatewayCol) {
+		
+	}
+	
+	
 }
