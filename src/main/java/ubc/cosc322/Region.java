@@ -11,6 +11,7 @@ public class Region {
 	ArrayList<ArrayList<Integer>> gatewayTiles; // holds position on board of tiles acting as gateways in this region
 	ArrayList<Integer> adjacentRegions; // holds id of all regions adjacent to this one (with only gateways btw)
 	ArrayList<Integer> regionConnections; // holds number of gates connect to each region, same length as adjacentRegions
+	int blackQueens, whiteQueens; // holds number of queens in region
 	
 	//-- CONSTRUCTORS --//
 	/**
@@ -19,7 +20,7 @@ public class Region {
 	 * @param regionTiles
 	 */
 	public Region(Board_v2 board, ArrayList<ArrayList<Integer>> regionTiles) {
-		System.out.println("Region " + Region.nextIdentifier + " is being created");
+//		System.out.println("Region " + Region.nextIdentifier + " is being created");
 		// set identifier then increment nextIdentifier for next new region
 		this.id = Region.nextIdentifier++;
 		// create regionTiles out of passed region tiles 
@@ -35,6 +36,13 @@ public class Region {
 		
 		// initialize size
 		this.updateSize();
+		
+//		// output initial 
+//		System.out.println("Region "+this.id+" has an initial size of "+this.size+".");
+//		System.out.println("That includes "+regionTiles.size()+ " region tiles, and "+gatewayTiles.size()+" gateway tiles.");
+//		for (int i=0; i<adjacentRegions.size() && i<regionConnections.size(); i++) {
+//			System.out.println("It has "+regionConnections.get(i)+" connections to Region "+adjacentRegions.get(i));
+//		}
 	}
 	
 	//-- METHODS --//
@@ -48,6 +56,7 @@ public class Region {
 	
 	/**
 	 * Update size field to actual current size
+	 * should multiply gateway tiles by a half maybe?
 	 */
 	public void updateSize() {
 		this.size = regionTiles.size() + gatewayTiles.size();
@@ -69,10 +78,17 @@ public class Region {
 		ArrayList<Integer> startTile = new ArrayList<Integer>();
 		// create array of checked values for recursing
 		boolean[][] checked = new boolean[11][11];
+		// create boolean to track if any tiles match board
+		boolean atleastOne = false;
+		// initialize lists of queens in region
+		blackQueens = 0;
+		whiteQueens = 0;
 		// loop through current region tiles until first one that is still region tile on board
 		for (int i=0; i<this.regionTiles.size(); i++) {
 			// check if value on board matches this region
 			if (board.getRegionTile(regionTiles.get(i).get(0), regionTiles.get(i).get(1))==this.id) {
+				// check boolean var
+				atleastOne = true;
 				// get row and col of first tile that matches board
 				startTile.add(regionTiles.get(i).get(0));
 				startTile.add(regionTiles.get(i).get(1));
@@ -82,12 +98,23 @@ public class Region {
 				for (ArrayList<Integer> tile : regionTiles) {
 					// set value on region board to this id
 					board.setRegionTile(id, tile.get(0), tile.get(1));
+					// check for queens to increment counts
+					if (board.getTile(tile)==Board_v2.BLACK) {
+						blackQueens++;
+					}
+					else if (board.getTile(tile)==Board_v2.WHITE) {
+						whiteQueens++;
+					}
 				}
 				// break out of loop as soon as hit first matching region
-				break;
+				return;
 			}
 		}
-
+		// if here -> most likely length of 1 and that one is no longer belonging to region
+		if (atleastOne==false) {
+			// this region has no tiles left -> clear it
+			this.clearRegion();
+		}
 
 
 	}
@@ -185,6 +212,33 @@ public class Region {
 		this.updateRegionTiles(board);
 		// update size
 		this.updateSize();
+	}
+	
+	public void clearRegion() {
+		regionTiles.clear();
+		gatewayTiles.clear();
+		adjacentRegions.clear();
+		regionConnections.clear();
+		size = 0;
+	}
+	
+	public int getQueenCount(int player) {
+		if (player==Board_v2.BLACK) {
+			return blackQueens;
+		}
+		else {
+			return whiteQueens;
+		}
+	}
+	
+	public int getConnectionsCount(int regionId) {
+		for (int i=0; i<adjacentRegions.size(); i++) {
+			if (adjacentRegions.get(i)==regionId) {
+				return regionConnections.get(i);
+			}
+		}
+		// if did not find region return 0 connections
+		return 0;
 	}
 	
 	

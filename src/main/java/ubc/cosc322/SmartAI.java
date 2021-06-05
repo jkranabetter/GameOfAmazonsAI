@@ -15,9 +15,9 @@ public class SmartAI extends Player {
 	//-- FIELDS --//
 	long turnStartTime, turnDuration;
 	
-	int searchDepth, turnCount;
+	int searchDepth;
 	
-	ArrayList<ArrayList<Integer>> isolatedQueens; // holds list of positions of queens unable to reach opponent
+	ArrayList<ArrayList<Integer>> isolatedQueens; // holds queens unable to reach opponent
 	ArrayList<ArrayList<Integer>> trappedQueens; // holds queens who can no longer move
 	boolean inFinalPhase; // flipped to true when all queens are isolated
 	
@@ -33,13 +33,6 @@ public class SmartAI extends Player {
 	public SmartAI(int player, Board_v2 board) {
 		// create base fields
 		super(player,board);
-		// initialize turn counter, will be incremented to starting value on first turn
-		if (this.player==Board_v2.BLACK) {
-			this.turnCount = -2;
-		} 
-		else {
-			this.turnCount = -1;
-		}
 		// set turn duration
 		this.turnDuration = 28; // gives 2 seconds to get out of multiple layers of loops
 		// set search depth
@@ -53,9 +46,9 @@ public class SmartAI extends Player {
 	//-- GENERAL METHODS --//
 	@Override
 	public ArrayList<ArrayList<Integer>> getAction() {
-		// do turn start parameter updates
-		this.turnStartTime = System.nanoTime(); // initialize turn start time
-		this.turnCount += 2; // increment turn counter
+		// initialize turn start time
+		this.turnStartTime = System.nanoTime(); 
+		// turn count moved to board class
 		this.findIsolatedOrTrappedQueens(trueBoard, this.player); // update isolated and trapped queens lists
 		
 		//-- UNCOMMENT BELOW WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
@@ -70,21 +63,38 @@ public class SmartAI extends Player {
 		}
 		//-- UNCOMMENT ABOVE WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
 		
-		// update heuristic weights for scoreBoard() method -> temporary form currently
-		if (turnCount<25) {
-			System.out.println("Phase 1");
-			totalActionsWeight = 1;
-			tileOwnershipWeight = 0;
+//		// update heuristic weights for scoreBoard() method -> temporary form currently
+//		if (trueBoard.turnCount<25) {
+//			System.out.println("Phase 1");
+//			totalActionsWeight = 1;
+//			tileOwnershipWeight = 0;
+//		}
+//		else if (trueBoard.turnCount<50) {
+//			System.out.println("Phase 2");
+//			totalActionsWeight = 0.5;
+//			tileOwnershipWeight = 0.5;
+//		}
+//		else if (trueBoard.turnCount>=50) {
+//			System.out.println("Phase 3");
+//			totalActionsWeight = 0;
+//			tileOwnershipWeight = 1;
+//		}
+		
+		if (this.getAllActions(player, trueBoard).size()<50) {
+			System.out.println("Initial Search depth set to 4");
+			searchDepth = 4;
 		}
-		else if (turnCount<50) {
-			System.out.println("Phase 2");
-			totalActionsWeight = 0.5;
-			tileOwnershipWeight = 0.5;
+		else if (this.getAllActions(player, trueBoard).size()<100) {
+			System.out.println("Initial Search depth set to 3");
+			searchDepth = 3;
 		}
-		else if (turnCount>=50) {
-			System.out.println("Phase 3");
-			totalActionsWeight = 0;
-			tileOwnershipWeight = 1;
+		else if (this.getAllActions(player, trueBoard).size()<=1000) {
+			System.out.println("Initial Search depth set to 2");
+			searchDepth = 2;
+		}
+		else if (this.getAllActions(player, trueBoard).size()>1000) {
+			System.out.println("Initial Search depth set to 1");
+			searchDepth = 1;
 		}
 		
 		// perform iterative minimax
@@ -96,7 +106,7 @@ public class SmartAI extends Player {
 	}
 	
 	/**
-	 * uncomment lines for queen isolation technique
+	 * uncomment lines for queen isolation technique -> done
 	 */
 	@Override
 	public ArrayList<ArrayList<ArrayList<Integer>>> getAllActions(int player, Board_v2 board) {
@@ -116,6 +126,7 @@ public class SmartAI extends Player {
 				continue;
 			}
 			//-- UNCOMMENT ABOVE WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
+			
 			
 			// get list of directly reachable empty tiles from queenCurrent
 			ArrayList<ArrayList<Integer>> queenMoves = board.getDirectEmptyTiles(queenCurrent);
@@ -143,6 +154,10 @@ public class SmartAI extends Player {
 		return actions;
 	}
 	
+	/**
+	 * Check if run out of time
+	 * @return
+	 */
 	public boolean checkEndTurn() {
 		// check if end of turn yet
 		if ((System.nanoTime()-this.turnStartTime)/(int)(Math.pow(10, 9)) > this.turnDuration) {
@@ -163,15 +178,24 @@ public class SmartAI extends Player {
 	public int scoreBoard(Board_v2 board) {
 		// determine which heuristic functions need to be called
 		int score = 0;
-		if (totalActionsWeight>0 && tileOwnershipWeight>0) {
-			score = (int) ( this.totalActionsWeight * this.totalActionsHeuristic(board) + this.tileOwnershipWeight * this.tileOwnershipHeuristic(board) );
-		}
-		else if (totalActionsWeight>0) {
-			score = (int) (this.totalActionsWeight * this.totalActionsHeuristic(board));
-		}
-		else if (tileOwnershipWeight>0) {
-			score = (int) (this.tileOwnershipWeight * this.tileOwnershipHeuristic(board));
-		}
+		
+//		if (board.turnCount<10) {
+//			score = this.totalActionsHeuristic(board);
+//		}
+//		else {
+//			score = this.regionsHeuristic(board);
+//		}
+		score = this.regionsHeuristic(board);
+		
+//		if (totalActionsWeight>0 && tileOwnershipWeight>0) {
+//			score = (int) ( this.totalActionsWeight * this.totalActionsHeuristic(board) + this.tileOwnershipWeight * this.tileOwnershipHeuristic(board) );
+//		}
+//		else if (totalActionsWeight>0) {
+//			score = (int) (this.totalActionsWeight * this.totalActionsHeuristic(board));
+//		}
+//		else if (tileOwnershipWeight>0) {
+//			score = (int) (this.tileOwnershipWeight * this.tileOwnershipHeuristic(board));
+//		}
 		
 		// System.out.println("Gave score of " + score);
 		return score;
@@ -201,17 +225,18 @@ public class SmartAI extends Player {
 			if (bestAction.isEmpty()) {
 				bestAction = action;
 			}
-			// check if updating to same action -> can stop b/c confirmed best action
-			else if (action.get(0).equals(bestAction.get(0)) && action.get(1).equals(bestAction.get(1)) && action.get(2).equals(bestAction.get(2))) {
-				System.out.println("Confirmed action, exiting early"); // testing
-				break;
-			}
+//			// check if updating to same action -> can stop b/c confirmed best action
+//			else if (action.get(0).equals(bestAction.get(0)) && action.get(1).equals(bestAction.get(1)) && action.get(2).equals(bestAction.get(2))) {
+//				System.out.println("Confirmed action, exiting early"); // testing
+//				break;
+//			}
 			// check if new action is better
 			else if (action.get(3).get(0)>=bestAction.get(3).get(0)) {
 				// System.out.println("Updating best action"); // testing
 				bestAction = action;
 			}
 		}
+		System.out.println("Best action has score "+bestAction.get(bestAction.size()-1));
 		// remove score from action list
 		bestAction.remove(bestAction.size()-1);
 		// return action 
@@ -444,7 +469,7 @@ public class SmartAI extends Player {
 	}
 	
 	/**
-	 * 
+	 * Use with above heuristic
 	 * @param board
 	 * @param position
 	 * @param checkedTiles boolean array holding if tiles have been recursed into already
@@ -555,61 +580,61 @@ public class SmartAI extends Player {
 		return smallestDepth;
 	}
 	
-	/**
-	 * NOT IN USE but has better structure than previous version which is slow -> complete recursive function at some point
-	 * @param board
-	 * @return
-	 */
-	public int tileOwnershipHeuristic_v2(Board_v2 board) {
-		// create array to hold which tiles belong to which player
-		int[][] tiles = new int[11][11];
-		// create holder of total board score
-		int score = 0;
-		// loop through tiles whos ownership have not yet been found
-		for (int row=1; row<11; row++) {
-			// check if end of turn yet
-			if (this.checkEndTurn()) { break; }
-			for (int col=1; col<11; col++) {
-				// check if end of turn yet
-				if (this.checkEndTurn()) { break; }
-				// check if tile ownership potentially not found (0 is default but also neutral tile)
-				if (tiles[row][col]==0) {
-					// get ownership of tile by recursing into it
-					ArrayList<Integer> position = new ArrayList<Integer>();
-					position.add(row);
-					position.add(col);
-					tiles[row][col] = this.tileOwnershipHeuristicRecurse_v2(tiles, board, position, 1);
-				}
-				// increment or decrement total score of board
-				if (tiles[row][col]>0) {
-					score++;
-				}
-				else if (tiles[row][col]<0) {
-					score--;
-				}
-			}
-		}
-		// return total board score
-		return score;
-	}
-	
-	/**
-	 * get ownership of passed tile and recurse into reachable tiles getting their closests
-	 * NOT COMPLETED
-	 * @param tiles 2d array to place ownership value into for each tile
-	 * @param board
-	 * @param position
-	 * @param depth current depth may not be needed if gonna count upwards from back
-	 * @return distance to closest queen, positive if player's, negative if opponents, 0 if neutral
-	 */
-	public int tileOwnershipHeuristicRecurse_v2(int[][] tiles, Board_v2 board, ArrayList<Integer> position, int depth) {
-		// loop through reachable tiles looking for queens reachable in one turn
-		// determine if queen(s) is(are) reachable and return +1, -1, or 0
-		// get closest queens to each of the reachable tiles
-		// determine closest queen to this tile and return it
-		
-		return 0; // temp
-	}
+//	/**
+//	 * NOT IN USE but has better structure than previous version which is slow -> complete recursive function at some point
+//	 * @param board
+//	 * @return
+//	 */
+//	public int tileOwnershipHeuristic_v2(Board_v2 board) {
+//		// create array to hold which tiles belong to which player
+//		int[][] tiles = new int[11][11];
+//		// create holder of total board score
+//		int score = 0;
+//		// loop through tiles whos ownership have not yet been found
+//		for (int row=1; row<11; row++) {
+//			// check if end of turn yet
+//			if (this.checkEndTurn()) { break; }
+//			for (int col=1; col<11; col++) {
+//				// check if end of turn yet
+//				if (this.checkEndTurn()) { break; }
+//				// check if tile ownership potentially not found (0 is default but also neutral tile)
+//				if (tiles[row][col]==0) {
+//					// get ownership of tile by recursing into it
+//					ArrayList<Integer> position = new ArrayList<Integer>();
+//					position.add(row);
+//					position.add(col);
+//					tiles[row][col] = this.tileOwnershipHeuristicRecurse_v2(tiles, board, position, 1);
+//				}
+//				// increment or decrement total score of board
+//				if (tiles[row][col]>0) {
+//					score++;
+//				}
+//				else if (tiles[row][col]<0) {
+//					score--;
+//				}
+//			}
+//		}
+//		// return total board score
+//		return score;
+//	}
+//	
+//	/**
+//	 * get ownership of passed tile and recurse into reachable tiles getting their closests
+//	 * NOT COMPLETED
+//	 * @param tiles 2d array to place ownership value into for each tile
+//	 * @param board
+//	 * @param position
+//	 * @param depth current depth may not be needed if gonna count upwards from back
+//	 * @return distance to closest queen, positive if player's, negative if opponents, 0 if neutral
+//	 */
+//	public int tileOwnershipHeuristicRecurse_v2(int[][] tiles, Board_v2 board, ArrayList<Integer> position, int depth) {
+//		// loop through reachable tiles looking for queens reachable in one turn
+//		// determine if queen(s) is(are) reachable and return +1, -1, or 0
+//		// get closest queens to each of the reachable tiles
+//		// determine closest queen to this tile and return it
+//		
+//		return 0; // temp
+//	}
 	
 	
 	//-- ISOLATED QUEENS TECHNIQUE METHODS --//
@@ -657,12 +682,12 @@ public class SmartAI extends Player {
 	}
 	
 	/**
-	 * 
+	 * Recurse tiles from input row and col to find target tile state
 	 * @param board board to look on
 	 * @param recursed tells when positions have already been recursed into
-	 * @param target tile to type to check for 
+	 * @param target tile type to check for 
 	 * @param position
-	 * @return
+	 * @return true if target found, false otherwise
 	 */
 	public boolean recurseAdjacentTilesForTarget(Board_v2 board, boolean[][] recursed, int target, int row, int col) {
 		// add tile to checked array
@@ -726,6 +751,7 @@ public class SmartAI extends Player {
 	}
 	
 	/**
+	 * NEED TO FIX
 	 * find first action for longest path 
 	 * not at all the best way to do it
 	 * has not been tested, but could probably use an actual longest path algorithm
@@ -739,6 +765,16 @@ public class SmartAI extends Player {
 		return this.minimax(trueBoard, size);
 	}
 	
+	/**
+	 * gets size of isolated room
+	 * could probably use one of the Regions functions to do this
+	 * @param board
+	 * @param recursed
+	 * @param player
+	 * @param row
+	 * @param col
+	 * @return
+	 */
 	public int recurseAdjacentTilesForSize(Board_v2 board, boolean[][] recursed, int player, int row, int col) {
 		// add tile to checked array
 		recursed[row][col] = true;
@@ -813,6 +849,124 @@ public class SmartAI extends Player {
 	}
 	
 
+	//-- REGIONS HEURISTICS --//
 	
+	/**
+	 * Score passed board based on where queens are in relation to regions
+	 * For each player queen on region tile:
+	 * + size of region
+	 * + for each opponent queen in same region divide by region size
+	 * - for each other player queen in same region divide by region size
+	 * + for each gateway in region 
+	 * + for each adjacent region
+	 * For each player queen on gateway tile:
+	 * +in gateway (look at both regions
+	 * +opponent in region with less connections and smaller size
+	 * -player in same position
+	 * - for each other player in same gateways
+	 * 
+	 * connections are not working correctly, do not rely heavily on this
+	 * errors probably come from finding sides of gate
+	 * 
+	 * @param board
+	 * @return
+	 */
+	public int regionsHeuristic(Board_v2 board) {
+		// create total score to return
+		double totalScore = 0;
+		// get positions of each player and opponent
+		ArrayList<ArrayList<Integer>> players = board.getQueens(player);
+		ArrayList<ArrayList<Integer>> opponents = board.getQueens(opponent);
+		// loop through each player mainly adding to score
+		for (ArrayList<Integer> queen : players) {
+			double score = 0;
+			// check if in gateway
+			if (board.getRegionTile(queen)==Board_v2.GATEWAY) {
+				// get adjacent regions
+				ArrayList<Region> regions = board.getAdjacentRegions(queen);
+				// loop through adjacent regions
+				for (Region region1 : regions) {
+					// compare to other regions in list
+					for (Region region2 : regions) {
+						// skip if comparing to same region
+						if (region1.id==region2.id) {
+							continue;
+						}
+						// check if region1 is smaller region
+						if (region1.size<region2.size) {
+							// increase score for opponents here
+							score += region1.getQueenCount(opponent) / (region1.size==0?1:region1.size);
+						}
+						// check if region1 is larger region
+						else if (region1.size>region2.size) {
+							// decrease score for multiple connections btw regions
+							score -= (region1.getConnectionsCount(region2.id) - 1) / (region1.size==0?1:region1.size);
+						}
+						
+					}
+				}
+			}
+			// otherwise is in region tile
+			else {
+				// score based on size of region, others in region, connections
+				Region region = board.getRegion(queen); // how to access current region
+				score = region.size; // initialize score to size of region
+				score -= ( region.getQueenCount(player) - 1 ) / (region.size==0?1:region.size); // decrease score for any extra queens in region
+				score += region.getQueenCount(opponent) / (region.size==0?1:region.size); // increase score for opponents in region
+				// loop through adjacent regions
+				for (int i=0; i<region.adjacentRegions.size(); i++) {
+					score += region.regionConnections.get(i) / (region.size==0?1:region.size); // add connections to score
+				}
+			}
+			// add score to total score
+			totalScore += score;
+		}
+		// loop through each opponent mainly deducting from score
+		for (ArrayList<Integer> queen : opponents) {
+			double score = 0;
+			// check if in gateway
+			if (board.getRegionTile(queen)==Board_v2.GATEWAY) {
+				// get adjacent regions
+				ArrayList<Region> regions = board.getAdjacentRegions(queen);
+				// loop through adjacent regions
+				for (Region region1 : regions) {
+					// compare to other regions in list
+					for (Region region2 : regions) {
+						// skip if comparing to same region
+						if (region1.id==region2.id) {
+							continue;
+						}
+						// check if region1 is smaller region
+						if (region1.size<region2.size) {
+							// increase score for opponents here
+							score += region1.getQueenCount(player) / (region1.size==0?1:region1.size);
+						}
+						// check if region1 is larger region
+						else if (region1.size>region2.size) {
+							// decrease score for multiple connections btw regions
+							score -= (region1.getConnectionsCount(region2.id) - 1) / (region1.size==0?1:region1.size);
+						}
+						
+					}
+				}
+			}
+			// otherwise is in region tile
+			else {
+				// score based on size of region, others in region, connections
+				Region region = board.getRegion(queen); // how to access current region
+				// score = region.size; // initialize score to size of region -> not doing this?
+				score -= ( region.getQueenCount(opponent) - 1 ) / (region.size==0?1:region.size); // decrease score for any extra queens in region
+				score += region.getQueenCount(player) / (region.size==0?1:region.size); // increase score for opponents in region
+				// loop through adjacent regions
+				for (int i=0; i<region.adjacentRegions.size(); i++) {
+					score += region.regionConnections.get(i) / (region.size==0?1:region.size); // add connections to score
+				}
+			}
+			// add score to total score
+			totalScore += score;
+		}
+		// return double score
+		return (int) totalScore;
+	}
 
 }

@@ -21,6 +21,8 @@ public class Board_v2 {
 	 */
 	protected int[][] tiles;
 	
+	int turnCount;
+	
 	protected int[][] regionTiles; // holds identifier of region this tile belongs to, -1 for arrows
 	ArrayList<Region> regions;
 	
@@ -45,6 +47,9 @@ public class Board_v2 {
 		this.setTile(Board_v2.WHITE, 1, 7);
 		this.setTile(Board_v2.WHITE, 4, 1);
 		this.setTile(Board_v2.WHITE, 4, 10);
+		
+		// initialize turn count
+		this.turnCount = 0;
 		
 		// create lists for region identifiers and regions themselves
 		this.regionTiles = new int[11][11];
@@ -327,6 +332,8 @@ public class Board_v2 {
 		// System.out.println("Beginning region changes");
 		this.investigateArrow(arrow);
 		this.updateRegions();
+		// increment turn counter
+		this.turnCount++;
 	}
 	
 	public void outputActionToConsole(ArrayList<Integer> queenCurrent, 
@@ -353,9 +360,30 @@ public class Board_v2 {
 	 * Get representation of board in string format
 	 */
 	public String toString() {
+		boolean showingRegions = false; // change to true if wanting to show region ids
 		// check if not needing double digits
 		String output = "\nState of Board: \n";
-		if (this.regions.size()<10) {
+		if (showingRegions==false) {
+			output += "  -   -   -   -   -   -   -   -   -   -  \n";
+			for (int row=10; row>=1; row--) {
+				output += "|";
+				for (int col=1; col<11; col++) {
+					switch (this.tiles[row][col]) {
+					case Board_v2.EMPTY: output += "   "; break;
+					case Board_v2.BLACK: output += " B "; break;
+					case Board_v2.WHITE: output += " W "; break;
+					case Board_v2.ARROW: output += " * "; break;
+					}
+					output += "|";
+				}
+				// output += " " + row + "\n";
+				output += "\n";
+				output += "  -   -   -   -   -   -   -   -   -   -  \n";
+			}
+			// output += "  1   2   3   4   5   6   7   8   9   10 \n";
+			return output;
+		}
+		else if (this.regions.size()<10) {
 			output += "  -   -   -   -   -   -   -   -   -   -  \n";
 			for (int row=10; row>=1; row--) {
 				output += "|";
@@ -435,6 +463,9 @@ public class Board_v2 {
 		// return region id
 		return this.regionTiles[row][col];
 	}
+	public int getRegionTile(ArrayList<Integer> position) {
+		return this.getRegionTile(position.get(0),position.get(1));
+	}
 	/**
 	 * Set passed tile position to regionId if not out of bounds or arrow
 	 * @param regionId
@@ -454,6 +485,58 @@ public class Board_v2 {
 		}
 		// set tile to region id
 		this.regionTiles[row][col] = regionId;
+	}
+	public void setRegionTile(int regionId, ArrayList<Integer> position) {
+		this.setRegionTile(regionId, position.get(0),position.get(1));
+	}
+	
+	/**
+	 * get region passed position is sitting in
+	 * @param position
+	 * @return
+	 */
+	public Region getRegion(ArrayList<Integer> position) {
+		int id = this.getRegionTile(position);
+		for (Region region : regions) {
+			if (region.id==id) {
+				return region;
+			}
+		}
+		// if never found region, output error
+		System.out.println("Never found requested region. Outputting null");
+		return null;
+	}
+	
+	/**
+	 * return adjacent regions to passed gate tile
+	 * @param position
+	 * @return
+	 */
+	public ArrayList<Region> getAdjacentRegions(ArrayList<Integer> position) {
+		// get sides of gate
+		ArrayList<ArrayList<Integer>> sides = this.getSidesOfGate(position, new boolean[11][11]);
+		// make list of regions
+		ArrayList<Region> regions = new ArrayList<Region>();
+		// loop through sides adding new regions to list
+		for (ArrayList<Integer> side : sides) {
+			int sideId = this.getRegionTile(side);
+			// loop through regions list to see if it matches
+			boolean inList = false;
+			for (Region region : regions) {
+				// check if same region as already in list
+				if (region.id==sideId) {
+					inList = true;
+					break;
+				}
+			}
+			// check if wasnt in list
+			if (inList==false) {
+				// add to list
+				regions.add(this.getRegion(side));
+			}
+		}
+		// return list of regions
+		return regions;
 	}
 
 	/**
@@ -886,15 +969,19 @@ public class Board_v2 {
 	}
 	
 	public void updateRegions() {
+		// String output = "";
 		// loop through regions on board
-		for (Region region : this.regions) {
+		for (int i=0; i<regions.size(); i++) {
 			// update region with current state of board
-			region.update(this);
-			if (region.size==0) {
-				System.out.println("Region " + region.id + " is empty");
+			regions.get(i).update(this);
+			// check if empty region
+			if (regions.get(i).regionTiles.size()<1) {
+				// System.out.println("Region "+regions.get(i).id+" is empty");
+				// regions.remove(i); -> shouldnt remove
 			}
-			// System.out.println("Region " + region.getRegionId() + " has size of " + region.size);
+			// output += "Region:"+region.id+" has size "+region.size+", ";
 		}
+		// System.out.println(output);
 	}
 	
 }

@@ -11,8 +11,8 @@ public class Main {
 		Board_v2 board = new Board_v2();
 		
 		// create ai
-		Player aiBlack = new RandomAI_v2(Board_v2.BLACK, board);
-		Player aiWhite = new RandomAI_v2(Board_v2.WHITE, board);
+		Player aiBlack = new SmartAI(Board_v2.BLACK, board);
+		Player aiWhite = new Opponent(Board_v2.WHITE, board);
 		
 		// print initial board state
 		System.out.println(board);
@@ -27,7 +27,7 @@ public class Main {
 		// loop through gameplay
 		while ( board.checkLose(player)==false ) {
 			// display turn count
-			System.out.println("Start turn " + turnCount++);
+			System.out.println("Start turn " + board.turnCount);
 			// display colour moving
 			switch (player) {
 			case Board_v2.BLACK: System.out.println("Black is moving..."); break;
