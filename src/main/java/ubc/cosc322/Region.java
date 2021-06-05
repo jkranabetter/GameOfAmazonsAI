@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Region {
 	//-- FIELDS --//
-	static int nextIdentifier = 0;
+	static int nextIdentifier = 1;
 	int id; // on region version of board, tiles in this region will have this as their value
 	int size; // holds number of board tiles belonging to this region, including gateway tiles
 	ArrayList<ArrayList<Integer>> regionTiles; // holds position on board of tiles belonging to this region
@@ -19,7 +19,7 @@ public class Region {
 	 * @param regionTiles
 	 */
 	public Region(Board_v2 board, ArrayList<ArrayList<Integer>> regionTiles) {
-		System.out.println("Region being made");
+		System.out.println("Region " + Region.nextIdentifier + " is being created");
 		// set identifier then increment nextIdentifier for next new region
 		this.id = Region.nextIdentifier++;
 		// create regionTiles out of passed region tiles 

@@ -324,7 +324,7 @@ public class Board_v2 {
 		this.setTile(player, queenMoved);
 		this.setTile(Board_v2.ARROW, arrow);
 		// update regions with action
-		System.out.println("Beginning region changes");
+		// System.out.println("Beginning region changes");
 		this.investigateArrow(arrow);
 		this.updateRegions();
 	}
@@ -353,25 +353,67 @@ public class Board_v2 {
 	 * Get representation of board in string format
 	 */
 	public String toString() {
+		// check if not needing double digits
 		String output = "\nState of Board: \n";
-		output += "  -   -   -   -   -   -   -   -   -   -  \n";
-		for (int row=10; row>=1; row--) {
-			output += "|";
-			for (int col=1; col<11; col++) {
-				switch (this.tiles[row][col]) {
-				case Board_v2.EMPTY: output += "   "; break;
-				case Board_v2.BLACK: output += " B "; break;
-				case Board_v2.WHITE: output += " W "; break;
-				case Board_v2.ARROW: output += " A "; break;
-				}
-				output += "|";
-			}
-			// output += " " + row + "\n";
-			output += "\n";
+		if (this.regions.size()<10) {
 			output += "  -   -   -   -   -   -   -   -   -   -  \n";
+			for (int row=10; row>=1; row--) {
+				output += "|";
+				for (int col=1; col<11; col++) {
+					switch (this.tiles[row][col]) {
+					case Board_v2.EMPTY: 
+						switch (this.regionTiles[row][col]) {
+						case Board_v2.GATEWAY: 
+							output += " ' "; 
+							break;
+						default: 
+							output += " " + this.regionTiles[row][col] + " "; 
+						}
+						break;
+					case Board_v2.BLACK: output += " B "; break;
+					case Board_v2.WHITE: output += " W "; break;
+					case Board_v2.ARROW: output += " * "; break;
+					}
+					output += "|";
+				}
+				// output += " " + row + "\n";
+				output += "\n";
+				output += "  -   -   -   -   -   -   -   -   -   -  \n";
+			}
+			// output += "  1   2   3   4   5   6   7   8   9   10 \n";
+			return output;
 		}
-		// output += "  1   2   3   4   5   6   7   8   9   10 \n";
-		return output;
+		else {
+			output += "  --   --   --   --   --   --   --   --   --   --  \n";
+			for (int row=10; row>=1; row--) {
+				output += "|";
+				for (int col=1; col<11; col++) {
+					switch (this.tiles[row][col]) {
+					case Board_v2.EMPTY: 
+						switch (this.regionTiles[row][col]) {
+						case Board_v2.GATEWAY: 
+							output += " '  "; 
+							break;
+						default: 
+							output += " " + this.regionTiles[row][col]; 
+							// add trailing spaces depending on size of tile region id
+							output += (this.regionTiles[row][col]<10)? ("  "):(" ");
+						}
+						break;
+					case Board_v2.BLACK: output += " B  "; break;
+					case Board_v2.WHITE: output += " W  "; break;
+					case Board_v2.ARROW: output += " *  "; break;
+					}
+					output += "|";
+				}
+				// output += " " + row + "\n";
+				output += "\n";
+				output += "  --   --   --   --   --   --   --   --   --   --  \n";
+			}
+			// output += "  1   2   3   4   5   6   7   8   9   10 \n";
+			return output;
+		}
+
 	}
 	
 	
@@ -448,7 +490,7 @@ public class Board_v2 {
 		// System.out.println("Arrow tile was " + this.getRegionTile(arrow.get(0), arrow.get(1)));
 		// check if arrow position was gateway 
 		if (this.getRegionTile(arrow.get(0), arrow.get(1))==Board_v2.GATEWAY) {
-			System.out.println("Arrow was gateway");
+			// System.out.println("Arrow was a gateway");
 			// update arrow position to wall on region board
 			this.setRegionTile(Board_v2.WALL, arrow.get(0), arrow.get(1));
 			// check if adjacent gateways are no longer gateways
@@ -456,7 +498,7 @@ public class Board_v2 {
 			for (ArrayList<Integer> tile : adjacentTiles) {
 				// check if should not be gate but is
 				if (this.isGate(tile)==false && this.getRegionTile(tile.get(0),tile.get(1))==Board_v2.GATEWAY) {
-					System.out.println("Adjacent gate is no longer a gate");
+					// System.out.println("Adjacent gate is no longer a gate");
 					// get adjacent tiles
 					ArrayList<ArrayList<Integer>> adjTiles = this.getAdjacentTiles(tile);
 					boolean allGates = true;
@@ -464,7 +506,7 @@ public class Board_v2 {
 						// check if region tile
 						if (this.getRegionTile(t.get(0),t.get(1))!=Board_v2.GATEWAY && 
 								this.getRegionTile(t.get(0),t.get(1))!=Board_v2.WALL) {
-							System.out.println("Found region to take value of");
+							// System.out.println("Found region to take value of");
 							// should only be one type of region so can take first one 
 							// set what was gate to found region
 							this.setRegionTile(this.getRegionTile(t.get(0), t.get(1)), tile.get(0), tile.get(1));
@@ -475,7 +517,7 @@ public class Board_v2 {
 					}
 					// check if allGates was never flipped ie no adjacent region ie needs new region
 					if (allGates==true) {
-						System.out.println("Did not find region to take value of");
+						// System.out.println("Did not find region to take value of");
 						// make list of just the one tile that used to be a gate
 						ArrayList<ArrayList<Integer>> loneTile = new ArrayList<ArrayList<Integer>>();
 						loneTile.add(tile);
@@ -488,7 +530,7 @@ public class Board_v2 {
 		}
 		// check if arrow position was region tile -> make new gateways
 		else if (this.getRegionTile(arrow.get(0), arrow.get(1))!=Board_v2.WALL) {
-			System.out.println("Arrow was region tile");
+			// System.out.println("Arrow was a region tile");
 			// update arrow position to wall on region board
 			this.setRegionTile(Board_v2.WALL, arrow.get(0), arrow.get(1));
 			// check if adjacent tiles are now gates
@@ -815,6 +857,13 @@ public class Board_v2 {
 		return gateways;
 	}
 	
+	/**
+	 * Outputs version of board without queens, looking at regions
+	 * arrows are walls(W) and all other spaces are distinguished by their region id 
+	 * only used in testing
+	 * toString method now updated to show region of tiles with no queens on them
+	 * @return
+	 */
 	public String regionsToString() {
 		String output = "\nState of Board: \n";
 		output += "  -   -   -   -   -   -   -   -   -   -  \n";
@@ -828,11 +877,11 @@ public class Board_v2 {
 				}
 				output += "|";
 			}
-			output += " " + row + "\n";
-			// output += "\n";
+			// output += " " + row + "\n";
+			output += "\n";
 			output += "  -   -   -   -   -   -   -   -   -   -  \n";
 		}
-		output += "  1   2   3   4   5   6   7   8   9   10 \n";
+		// output += "  1   2   3   4   5   6   7   8   9   10 \n";
 		return output;
 	}
 	
@@ -841,6 +890,9 @@ public class Board_v2 {
 		for (Region region : this.regions) {
 			// update region with current state of board
 			region.update(this);
+			if (region.size==0) {
+				System.out.println("Region " + region.id + " is empty");
+			}
 			// System.out.println("Region " + region.getRegionId() + " has size of " + region.size);
 		}
 	}
