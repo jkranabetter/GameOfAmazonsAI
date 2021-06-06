@@ -151,6 +151,8 @@ public class Board_v2 {
 		}
 		// copy regions
 		this.regions = original.getRegionsList();
+		// copy turn count
+		this.turnCount = original.turnCount;
 		
 	}
 	

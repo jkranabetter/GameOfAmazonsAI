@@ -14,12 +14,19 @@ public class Main {
 		Player aiBlack = new SmartAI(Board_v2.BLACK, board);
 		Player aiWhite = new Opponent(Board_v2.WHITE, board);
 		
+//		if (aiBlack instanceof SmartAI) {
+//			// System.out.println(((SmartAI) aiBlack).tileOwnershipHeuristic_v3(board));
+//			System.out.println(((SmartAI)aiBlack).regionsHeuristic_v3(board));
+//			System.out.println(board);
+//			return;
+//		}
+		
+		
 		// print initial board state
 		System.out.println(board);
 		
 		// create player tracker
 		int player = Board_v2.BLACK; // switches from black to white and back untill win
-		int turnCount = 0; // count iterations
 		
 		// timing fields
 		long start, end, duration;

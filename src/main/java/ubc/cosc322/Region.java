@@ -22,7 +22,8 @@ public class Region {
 	public Region(Board_v2 board, ArrayList<ArrayList<Integer>> regionTiles) {
 //		System.out.println("Region " + Region.nextIdentifier + " is being created");
 		// set identifier then increment nextIdentifier for next new region
-		this.id = Region.nextIdentifier++;
+		// this.id = Region.nextIdentifier++;
+		this.id = board.regions.size();
 		// create regionTiles out of passed region tiles 
 		this.regionTiles = regionTiles;
 		// set tiles on board to this region id
@@ -59,7 +60,7 @@ public class Region {
 	 * should multiply gateway tiles by a half maybe?
 	 */
 	public void updateSize() {
-		this.size = regionTiles.size() + gatewayTiles.size();
+		this.size = regionTiles.size() + (gatewayTiles.size()); // gateway tiles worth the same now
 	}
 	
 	// need methods to add gateways, add adjacent regions, 
@@ -148,8 +149,17 @@ public class Region {
 					// get list from tile
 					ArrayList<ArrayList<Integer>> foundTiles = board.getConnectedGateways(adjacentTile,checked);
 					for (ArrayList<Integer> t : foundTiles) {
+						// check off current gateway
+						checked[t.get(0)][t.get(1)] = true;
 						// add each gate to list of gateways in region
 						gatewayTiles.add(t);
+						// check if queen on adjacent gateway -> include in list of queens
+						if (board.getTile(adjacentTile)==Board_v2.BLACK) {
+							blackQueens++;
+						}
+						else if (board.getTile(adjacentTile)==Board_v2.WHITE) {
+							whiteQueens++;
+						}
 					}
 					
 				}
@@ -212,6 +222,8 @@ public class Region {
 		this.updateRegionTiles(board);
 		// update size
 		this.updateSize();
+		
+		// System.out.println("Region "+this.id+" has "+this.blackQueens+" B's and "+this.whiteQueens+" W's in "+this.regionTiles.size()+" tiles and "+this.gatewayTiles.size()+" gates");
 	}
 	
 	public void clearRegion() {
