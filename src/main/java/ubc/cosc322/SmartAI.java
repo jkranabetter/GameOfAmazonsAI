@@ -180,15 +180,28 @@ public class SmartAI extends Player {
 		// determine which heuristic functions need to be called
 		int score = 0;
 		
+		// check if all queens isolated on trueBoard
+		if (this.isolatedQueens.size()+this.trappedQueens.size()>=4) {
+			// score board by total actions
+			score = this.totalActionsHeuristic(board);
+			return score;
+		}
+		
+		// uncomment one
+		score = this.totalActionsHeuristic(board);
+		// score = this.tileOwnershipHeuristic_v3(board);
+		// score = this.regionsHeuristic_v4(board);
+		
+		// temp form
 //		if (board.turnCount<15) {
 //			score = this.totalActionsHeuristic(board);
 //		}
 //		else {
 //			score = this.regionsHeuristic_v3(board);
 //		}
-		// score = this.tileOwnershipHeuristic_v3(board);
-		score = this.regionsHeuristic_v3(board);
 		
+		
+		// old temp form
 //		if (totalActionsWeight>0 && tileOwnershipWeight>0) {
 //			score = (int) ( this.totalActionsWeight * this.totalActionsHeuristic(board) + this.tileOwnershipWeight * this.tileOwnershipHeuristic(board) );
 //		}
@@ -786,6 +799,7 @@ public class SmartAI extends Player {
 	}
 	
 	
+	
 	//-- ISOLATED QUEENS TECHNIQUE METHODS --//
 	/**
 	 * check for queens who dont need to contribute to search tree rn
@@ -904,18 +918,20 @@ public class SmartAI extends Player {
 	 * find first action for longest path 
 	 * not at all the best way to do it
 	 * has not been tested, but could probably use an actual longest path algorithm
-	 * @param queens
+	 * called from main getAction function
+	 * @param queens list of isolated queens, look at first one
 	 * @return
 	 */
 	public ArrayList<ArrayList<Integer>> findLongestPath(ArrayList<ArrayList<Integer>> queens) {
 		// find size of room
-		int size = this.recurseAdjacentTilesForSize(trueBoard, new boolean[11][11], player, queens.get(0).get(0), queens.get(0).get(1));
+		// int size = this.recurseAdjacentTilesForSize(trueBoard, new boolean[11][11], player, queens.get(0).get(0), queens.get(0).get(1));
 		// perform minimax to size
-		return this.minimax(trueBoard, size);
+		return this.minimax(trueBoard, 1);
 	}
 	
 	/**
 	 * gets size of isolated room
+	 * NOT IN USE
 	 * could probably use one of the Regions functions to do this
 	 * @param board
 	 * @param recursed
@@ -1020,223 +1036,238 @@ public class SmartAI extends Player {
 	 * @param board
 	 * @return
 	 */
-	public int regionsHeuristic(Board_v2 board) {
-		// create total score to return
-		double totalScore = 0;
-		// get positions of each player and opponent
-		ArrayList<ArrayList<Integer>> players = board.getQueens(player);
-		ArrayList<ArrayList<Integer>> opponents = board.getQueens(opponent);
-		// loop through each player mainly adding to score
-		for (ArrayList<Integer> queen : players) {
-			double score = 0;
-			// check if in gateway
-			if (board.getRegionTile(queen)==Board_v2.GATEWAY) {
-				// get adjacent regions
-				ArrayList<Region> regions = board.getAdjacentRegions(queen);
-				// loop through adjacent regions
-				for (Region region1 : regions) {
-					// compare to other regions in list
-					for (Region region2 : regions) {
-						// skip if comparing to same region
-						if (region1.id==region2.id) {
-							continue;
-						}
-						// check if region1 is smaller region
-						if (region1.size<region2.size) {
-							// increase score for opponents here
-							score += region1.getQueenCount(opponent) / (region1.size==0?1:region1.size);
-						}
-						// check if region1 is larger region
-						else if (region1.size>region2.size) {
-							// decrease score for multiple connections btw regions
-							score -= (region1.getConnectionsCount(region2.id) - 1) / (region1.size==0?1:region1.size);
-						}
-						
-					}
-				}
-			}
-			// otherwise is in region tile
-			else {
-				// score based on size of region, others in region, connections
-				Region region = board.getRegion(queen); // how to access current region
-				score = region.size; // initialize score to size of region
-				score -= ( region.getQueenCount(player) - 1 ) / (region.size==0?1:region.size); // decrease score for any extra queens in region
-				score += region.getQueenCount(opponent) / (region.size==0?1:region.size); // increase score for opponents in region
-				// loop through adjacent regions
-				for (int i=0; i<region.adjacentRegions.size(); i++) {
-					score += region.regionConnections.get(i) / (region.size==0?1:region.size); // add connections to score
-				}
-			}
-			// add score to total score
-			totalScore += score;
-		}
-		// loop through each opponent mainly deducting from score
-		for (ArrayList<Integer> queen : opponents) {
-			double score = 0;
-			// check if in gateway
-			if (board.getRegionTile(queen)==Board_v2.GATEWAY) {
-				// get adjacent regions
-				ArrayList<Region> regions = board.getAdjacentRegions(queen);
-				// loop through adjacent regions
-				for (Region region1 : regions) {
-					// compare to other regions in list
-					for (Region region2 : regions) {
-						// skip if comparing to same region
-						if (region1.id==region2.id) {
-							continue;
-						}
-						// check if region1 is smaller region
-						if (region1.size<region2.size) {
-							// increase score for opponents here
-							score += region1.getQueenCount(player) / (region1.size==0?1:region1.size);
-						}
-						// check if region1 is larger region
-						else if (region1.size>region2.size) {
-							// decrease score for multiple connections btw regions
-							score -= (region1.getConnectionsCount(region2.id) - 1) / (region1.size==0?1:region1.size);
-						}
-						
-					}
-				}
-			}
-			// otherwise is in region tile
-			else {
-				// score based on size of region, others in region, connections
-				Region region = board.getRegion(queen); // how to access current region
-				// score = region.size; // initialize score to size of region -> not doing this?
-				score -= ( region.getQueenCount(opponent) - 1 ) / (region.size==0?1:region.size); // decrease score for any extra queens in region
-				score += region.getQueenCount(player) / (region.size==0?1:region.size); // increase score for opponents in region
-				// loop through adjacent regions
-				for (int i=0; i<region.adjacentRegions.size(); i++) {
-					score += region.regionConnections.get(i) / (region.size==0?1:region.size); // add connections to score
-				}
-			}
-			// add score to total score
-			totalScore += score;
-		}
-		// return double score
-		return (int) totalScore;
-	}
-
-	public int regionsHeuristic_v2(Board_v2 board) {
-		// create total score to return
-		int totalScore = 0;
-		// get positions of each player and opponent
-		ArrayList<ArrayList<Integer>> players = board.getQueens(player);
-		ArrayList<ArrayList<Integer>> opponents = board.getQueens(opponent);
-		// loop through each player mainly adding to score
-		for (ArrayList<Integer> queen : players) {
-			double score = 0;
-			// check if in gateway
-			if (board.getRegionTile(queen)==Board_v2.GATEWAY) {
-				// plus if opponents in smaller regions
-				// minus if opponents in larger regions
-				// plus if no other connections
-				// use with tile ownership heuristic
-				
-				// get adjacent regions
-				ArrayList<Region> regions = board.getAdjacentRegions(queen);
-				// loop through adjacent regions
-				for (Region region1 : regions) {
-					// loop through adjacent regions again to compare to others
-					for (Region region2 : regions) {
-						// check if smaller region
-						if (region1.regionTiles.size()<region2.regionTiles.size()) {
-							// increase score for opponents in smaller region
-							score += region1.getQueenCount(opponent);
-							score -= region1.getQueenCount(player);
-						}
-						// check if larger region
-						else if (region1.regionTiles.size()>region2.regionTiles.size()) {
-							// increase score for players in larger region
-							score += region1.getQueenCount(player);
-							score -= region1.getQueenCount(opponent);
-						}
-					}
-					// check if connects to one other region only
-					if (region1.adjacentRegions.size()<2) {
-						// increase score for blocking off only entrance to region
-						score += region1.size;
-					}
-				}
-			}
-			// otherwise is in region tile
-			else {
-				// plus for bigger region
-				// minus for extra player queens (small deduction)
-				// use with total actions heuristic
-				// minus for opponent queens
-				
-				
-				// get access to region queen is residing in
-				Region region = board.getRegion(queen); 
-				// increase score for size of region
-				score += region.size;
-				// decrease score for more than 2 queens in region
-				score -= (region.getQueenCount(player)-2); // 1Q=+1,2Q=0,3Q=-1,4Q=-2
-				// decrease score for opponent queens in region
-				score -= region.getQueenCount(opponent);
-			}
-			// add to total score
-			totalScore += score;
-		}
-		// loop through each opponent mainly deducting from score
-		for (ArrayList<Integer> queen : opponents) {
-			double score = 0;
-			// check if in gateway
-			if (board.getRegionTile(queen)==Board_v2.GATEWAY) {
-				// get adjacent regions
-				ArrayList<Region> regions = board.getAdjacentRegions(queen);
-				// loop through adjacent regions
-				for (Region region1 : regions) {
-					// loop through adjacent regions again to compare to others
-					for (Region region2 : regions) {
-						// check if smaller region
-						if (region1.regionTiles.size()<region2.regionTiles.size()) {
-							// increase score for opponents in smaller region
-							score += region1.getQueenCount(player);
-							score -= region1.getQueenCount(opponent);
-						}
-						// check if larger region
-						else if (region1.regionTiles.size()>region2.regionTiles.size()) {
-							// increase score for players in larger region
-							score += region1.getQueenCount(opponent);
-							score -= region1.getQueenCount(player);
-						}
-					}
-					// check if in sole set of gates to region
-					if (region1.adjacentRegions.size()<2) {
-						// increase score for blocking off only entrance to region
-						score += region1.size;
-					}
-				}
-			}
-			// otherwise is in region tile
-			else {
-				// get access to region queen is residing in
-				Region region = board.getRegion(queen); 
-				// increase score for size of region
-				score += region.size;
-				// decrease score for more than 2 queens in region
-				score -= (region.getQueenCount(opponent)-2); // 1Q=+1,2Q=0,3Q=-1,4Q=-2
-				// decrease score for opponent queens in region
-				score -= region.getQueenCount(player);
-			}
-			// take from total score
-			totalScore -= score;
-		}
-		// return total score
-		return totalScore;
-	}
+//	public int regionsHeuristic(Board_v2 board) {
+//		// create total score to return
+//		double totalScore = 0;
+//		// get positions of each player and opponent
+//		ArrayList<ArrayList<Integer>> players = board.getQueens(player);
+//		ArrayList<ArrayList<Integer>> opponents = board.getQueens(opponent);
+//		// loop through each player mainly adding to score
+//		for (ArrayList<Integer> queen : players) {
+//			double score = 0;
+//			// check if in gateway
+//			if (board.getRegionTile(queen)==Board_v2.GATEWAY) {
+//				// get adjacent regions
+//				ArrayList<Region> regions = board.getAdjacentRegions(queen);
+//				// loop through adjacent regions
+//				for (Region region1 : regions) {
+//					// compare to other regions in list
+//					for (Region region2 : regions) {
+//						// skip if comparing to same region
+//						if (region1.id==region2.id) {
+//							continue;
+//						}
+//						// check if region1 is smaller region
+//						if (region1.size<region2.size) {
+//							// increase score for opponents here
+//							score += region1.getQueenCount(opponent) / (region1.size==0?1:region1.size);
+//						}
+//						// check if region1 is larger region
+//						else if (region1.size>region2.size) {
+//							// decrease score for multiple connections btw regions
+//							score -= (region1.getConnectionsCount(region2.id) - 1) / (region1.size==0?1:region1.size);
+//						}
+//						
+//					}
+//				}
+//			}
+//			// otherwise is in region tile
+//			else {
+//				// score based on size of region, others in region, connections
+//				Region region = board.getRegion(queen); // how to access current region
+//				score = region.size; // initialize score to size of region
+//				score -= ( region.getQueenCount(player) - 1 ) / (region.size==0?1:region.size); // decrease score for any extra queens in region
+//				score += region.getQueenCount(opponent) / (region.size==0?1:region.size); // increase score for opponents in region
+//				// loop through adjacent regions
+//				for (int i=0; i<region.adjacentRegions.size(); i++) {
+//					score += region.regionConnections.get(i) / (region.size==0?1:region.size); // add connections to score
+//				}
+//			}
+//			// add score to total score
+//			totalScore += score;
+//		}
+//		// loop through each opponent mainly deducting from score
+//		for (ArrayList<Integer> queen : opponents) {
+//			double score = 0;
+//			// check if in gateway
+//			if (board.getRegionTile(queen)==Board_v2.GATEWAY) {
+//				// get adjacent regions
+//				ArrayList<Region> regions = board.getAdjacentRegions(queen);
+//				// loop through adjacent regions
+//				for (Region region1 : regions) {
+//					// compare to other regions in list
+//					for (Region region2 : regions) {
+//						// skip if comparing to same region
+//						if (region1.id==region2.id) {
+//							continue;
+//						}
+//						// check if region1 is smaller region
+//						if (region1.size<region2.size) {
+//							// increase score for opponents here
+//							score += region1.getQueenCount(player) / (region1.size==0?1:region1.size);
+//						}
+//						// check if region1 is larger region
+//						else if (region1.size>region2.size) {
+//							// decrease score for multiple connections btw regions
+//							score -= (region1.getConnectionsCount(region2.id) - 1) / (region1.size==0?1:region1.size);
+//						}
+//						
+//					}
+//				}
+//			}
+//			// otherwise is in region tile
+//			else {
+//				// score based on size of region, others in region, connections
+//				Region region = board.getRegion(queen); // how to access current region
+//				// score = region.size; // initialize score to size of region -> not doing this?
+//				score -= ( region.getQueenCount(opponent) - 1 ) / (region.size==0?1:region.size); // decrease score for any extra queens in region
+//				score += region.getQueenCount(player) / (region.size==0?1:region.size); // increase score for opponents in region
+//				// loop through adjacent regions
+//				for (int i=0; i<region.adjacentRegions.size(); i++) {
+//					score += region.regionConnections.get(i) / (region.size==0?1:region.size); // add connections to score
+//				}
+//			}
+//			// add score to total score
+//			totalScore += score;
+//		}
+//		// return double score
+//		return (int) totalScore;
+//	}
+//
+//	public int regionsHeuristic_v2(Board_v2 board) {
+//		// create total score to return
+//		int totalScore = 0;
+//		// get positions of each player and opponent
+//		ArrayList<ArrayList<Integer>> players = board.getQueens(player);
+//		ArrayList<ArrayList<Integer>> opponents = board.getQueens(opponent);
+//		// loop through each player mainly adding to score
+//		for (ArrayList<Integer> queen : players) {
+//			double score = 0;
+//			// check if in gateway
+//			if (board.getRegionTile(queen)==Board_v2.GATEWAY) {
+//				// plus if opponents in smaller regions
+//				// minus if opponents in larger regions
+//				// plus if no other connections
+//				// use with tile ownership heuristic
+//				
+//				// get adjacent regions
+//				ArrayList<Region> regions = board.getAdjacentRegions(queen);
+//				// loop through adjacent regions
+//				for (Region region1 : regions) {
+//					// loop through adjacent regions again to compare to others
+//					for (Region region2 : regions) {
+//						// check if smaller region
+//						if (region1.regionTiles.size()<region2.regionTiles.size()) {
+//							// increase score for opponents in smaller region
+//							score += region1.getQueenCount(opponent);
+//							score -= region1.getQueenCount(player);
+//						}
+//						// check if larger region
+//						else if (region1.regionTiles.size()>region2.regionTiles.size()) {
+//							// increase score for players in larger region
+//							score += region1.getQueenCount(player);
+//							score -= region1.getQueenCount(opponent);
+//						}
+//					}
+//					// check if connects to one other region only
+//					if (region1.adjacentRegions.size()<2) {
+//						// increase score for blocking off only entrance to region
+//						score += region1.size;
+//					}
+//				}
+//			}
+//			// otherwise is in region tile
+//			else {
+//				// plus for bigger region
+//				// minus for extra player queens (small deduction)
+//				// use with total actions heuristic
+//				// minus for opponent queens
+//				
+//				
+//				// get access to region queen is residing in
+//				Region region = board.getRegion(queen); 
+//				// increase score for size of region
+//				score += region.size;
+//				// decrease score for more than 2 queens in region
+//				score -= (region.getQueenCount(player)-2); // 1Q=+1,2Q=0,3Q=-1,4Q=-2
+//				// decrease score for opponent queens in region
+//				score -= region.getQueenCount(opponent);
+//			}
+//			// add to total score
+//			totalScore += score;
+//		}
+//		// loop through each opponent mainly deducting from score
+//		for (ArrayList<Integer> queen : opponents) {
+//			double score = 0;
+//			// check if in gateway
+//			if (board.getRegionTile(queen)==Board_v2.GATEWAY) {
+//				// get adjacent regions
+//				ArrayList<Region> regions = board.getAdjacentRegions(queen);
+//				// loop through adjacent regions
+//				for (Region region1 : regions) {
+//					// loop through adjacent regions again to compare to others
+//					for (Region region2 : regions) {
+//						// check if smaller region
+//						if (region1.regionTiles.size()<region2.regionTiles.size()) {
+//							// increase score for opponents in smaller region
+//							score += region1.getQueenCount(player);
+//							score -= region1.getQueenCount(opponent);
+//						}
+//						// check if larger region
+//						else if (region1.regionTiles.size()>region2.regionTiles.size()) {
+//							// increase score for players in larger region
+//							score += region1.getQueenCount(opponent);
+//							score -= region1.getQueenCount(player);
+//						}
+//					}
+//					// check if in sole set of gates to region
+//					if (region1.adjacentRegions.size()<2) {
+//						// increase score for blocking off only entrance to region
+//						score += region1.size;
+//					}
+//				}
+//			}
+//			// otherwise is in region tile
+//			else {
+//				// get access to region queen is residing in
+//				Region region = board.getRegion(queen); 
+//				// increase score for size of region
+//				score += region.size;
+//				// decrease score for more than 2 queens in region
+//				score -= (region.getQueenCount(opponent)-2); // 1Q=+1,2Q=0,3Q=-1,4Q=-2
+//				// decrease score for opponent queens in region
+//				score -= region.getQueenCount(player);
+//			}
+//			// take from total score
+//			totalScore -= score;
+//		}
+//		// return total score
+//		return totalScore;
+//	}
+//	
+//	public int regionsHeuristic_v3(Board_v2 board) {
+//		int totalScore = 0;
+//		// loop through board regions
+//		for (Region region : board.regions) {
+//			// add to score size of region for each queen, subtract size for each opponent
+//			totalScore += region.size * (region.getQueenCount(player) - region.getQueenCount(opponent));
+//		}
+//		// System.out.println("Giving score of "+totalScore);
+//		return totalScore;
+//	}
 	
-	public int regionsHeuristic_v3(Board_v2 board) {
-		int totalScore = 0;
-		// loop through board regions
-		for (Region region : board.regions) {
-			// add to score size of region for each queen, subtract size for each opponent
-			totalScore += region.size * (region.getQueenCount(player) - region.getQueenCount(opponent));
-		}
-		System.out.println("Giving score of "+totalScore);
-		return totalScore;
-	}
+//	/**
+//	 * Score board based on regions
+//	 * @param board
+//	 * @return
+//	 */
+//	public int regionsHeuristic_v4(Board_v2 board) {
+//		int score = 0;
+//		// loop through regions on board
+//		for (Region region : board.regions) {
+//			score += ( region.getQueensCount(board, player) * region.getSize() );
+//			score -= ( region.getQueensCount(board, opponent) * region.getSize() );
+//		}
+//		return score; // temp
+//	}
 }

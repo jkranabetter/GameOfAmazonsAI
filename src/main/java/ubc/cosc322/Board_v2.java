@@ -10,8 +10,8 @@ public class Board_v2 {
 	public static final int ARROW = 3;
 	public static final int OUTOFBOUNDS = 4;
 	
-	public static final int GATEWAY = -1; // region tile value, empty with certain adjacent walls
-	public static final int WALL = -2; // region tile value , arrow or out of bounds
+//	public static final int GATEWAY = -1; // region tile value, empty with certain adjacent walls
+//	public static final int WALL = -2; // region tile value , arrow or out of bounds
 	
 	//-- FIELDS --//
 	/**
@@ -23,8 +23,8 @@ public class Board_v2 {
 	
 	int turnCount;
 	
-	protected int[][] regionTiles; // holds identifier of region this tile belongs to, -1 for arrows
-	ArrayList<Region> regions;
+//	protected int[][] regionTiles; // holds identifier of region this tile belongs to, -1 for arrows
+//	ArrayList<Region> regions;
 	
 	//-- CONSTRUCTORS --//
 	/**
@@ -51,21 +51,21 @@ public class Board_v2 {
 		// initialize turn count
 		this.turnCount = 0;
 		
-		// create lists for region identifiers and regions themselves
-		this.regionTiles = new int[11][11];
-		this.regions = new ArrayList<Region>();
-		// get positions of all tiles and put in list
-		ArrayList<ArrayList<Integer>> positions = new ArrayList<ArrayList<Integer>>();
-		for (int row=1; row<11; row++) {
-			for (int col=1; col<11; col++) {
-				ArrayList<Integer> position = new ArrayList<Integer>();
-				position.add(row);
-				position.add(col);
-				positions.add(position);
-			}
-		}
-		// make new region in regions list with passed tiles
-		this.makeNewRegion(positions);
+//		// create lists for region identifiers and regions themselves
+//		this.regionTiles = new int[11][11];
+//		this.regions = new ArrayList<Region>();
+//		// get positions of all tiles and put in list
+//		ArrayList<ArrayList<Integer>> positions = new ArrayList<ArrayList<Integer>>();
+//		for (int row=1; row<11; row++) {
+//			for (int col=1; col<11; col++) {
+//				ArrayList<Integer> position = new ArrayList<Integer>();
+//				position.add(row);
+//				position.add(col);
+//				positions.add(position);
+//			}
+//		}
+//		// make new region in regions list with passed tiles
+//		this.addRegion(positions);
 	}
 	
 	/**
@@ -83,8 +83,8 @@ public class Board_v2 {
 	 */
 	public Board_v2(Board_v2 original) {
 		this.tiles = new int[11][11];
-		this.regionTiles = new int[11][11];
-		this.regions = new ArrayList<Region>();
+//		this.regionTiles = new int[11][11];
+//		this.regions = new ArrayList<Region>();
 		this.clone(original);
 	}
 	
@@ -146,11 +146,11 @@ public class Board_v2 {
 		for (int row=1; row<11; row++) {
 			for (int col=1; col<11; col++) {
 				this.setTile(original.getTile(row,col), row, col);
-				this.setRegionTile(original.getRegionTile(row,col), row, col);
+//				this.setTileRegion(original.getTileRegion(row,col), row, col);
 			}
 		}
-		// copy regions
-		this.regions = original.getRegionsList();
+//		// copy regions
+//		this.regions = original.regions;
 		// copy turn count
 		this.turnCount = original.turnCount;
 		
@@ -330,10 +330,10 @@ public class Board_v2 {
 		this.setTile(Board_v2.EMPTY, queenCurrent);
 		this.setTile(player, queenMoved);
 		this.setTile(Board_v2.ARROW, arrow);
-		// update regions with action
-		// System.out.println("Beginning region changes");
-		this.investigateArrow(arrow);
-		this.updateRegions();
+//		// update regions with action
+//		// System.out.println("Beginning region changes");
+//		this.investigateArrow(arrow);
+//		this.updateRegions();
 		// increment turn counter
 		this.turnCount++;
 	}
@@ -385,606 +385,541 @@ public class Board_v2 {
 			// output += "  1   2   3   4   5   6   7   8   9   10 \n";
 			return output;
 		}
-		else if (this.regions.size()<10) {
-			output += "  -   -   -   -   -   -   -   -   -   -  \n";
-			for (int row=10; row>=1; row--) {
-				output += "|";
-				for (int col=1; col<11; col++) {
-					switch (this.tiles[row][col]) {
-					case Board_v2.EMPTY: 
-						switch (this.regionTiles[row][col]) {
-						case Board_v2.GATEWAY: 
-							output += " ' "; 
-							break;
-						default: 
-							output += " " + this.regionTiles[row][col] + " "; 
-						}
-						break;
-					case Board_v2.BLACK: output += " B "; break;
-					case Board_v2.WHITE: output += " W "; break;
-					case Board_v2.ARROW: output += " * "; break;
-					}
-					output += "|";
-				}
-				// output += " " + row + "\n";
-				output += "\n";
-				output += "  -   -   -   -   -   -   -   -   -   -  \n";
-			}
-			// output += "  1   2   3   4   5   6   7   8   9   10 \n";
-			return output;
-		}
-		else {
-			output += "  --   --   --   --   --   --   --   --   --   --  \n";
-			for (int row=10; row>=1; row--) {
-				output += "|";
-				for (int col=1; col<11; col++) {
-					switch (this.tiles[row][col]) {
-					case Board_v2.EMPTY: 
-						switch (this.regionTiles[row][col]) {
-						case Board_v2.GATEWAY: 
-							output += " '  "; 
-							break;
-						default: 
-							output += " " + this.regionTiles[row][col]; 
-							// add trailing spaces depending on size of tile region id
-							output += (this.regionTiles[row][col]<10)? ("  "):(" ");
-						}
-						break;
-					case Board_v2.BLACK: output += " B  "; break;
-					case Board_v2.WHITE: output += " W  "; break;
-					case Board_v2.ARROW: output += " *  "; break;
-					}
-					output += "|";
-				}
-				// output += " " + row + "\n";
-				output += "\n";
-				output += "  --   --   --   --   --   --   --   --   --   --  \n";
-			}
-			// output += "  1   2   3   4   5   6   7   8   9   10 \n";
-			return output;
-		}
-
-	}
-	
-	
-	
-	//-- REGION METHODS --//
-	
-	/**
-	 * Get id of region containing passed tile
-	 * @param row
-	 * @param col
-	 * @return region id otherwise WALL value(-2)
-	 */
-	public int getRegionTile(int row, int col) {
-		// check if tile is invalid or an arrow
-		if (this.getTile(row,col)==Board_v2.OUTOFBOUNDS) {
-			// return wall value, tile isn't tied to any region
-			return Board_v2.WALL;
-		}
-		// return region id
-		return this.regionTiles[row][col];
-	}
-	public int getRegionTile(ArrayList<Integer> position) {
-		return this.getRegionTile(position.get(0),position.get(1));
-	}
-	/**
-	 * Set passed tile position to regionId if not out of bounds or arrow
-	 * @param regionId
-	 * @param row
-	 * @param col
-	 */
-	public void setRegionTile(int regionId, int row, int col) {
-		// check if out of bounds 
-		if (this.getTile(row,col)==Board_v2.OUTOFBOUNDS) {
-			// do nothing
-			return;
-		}
-		// check if arrow
-		if (this.getTile(row,col)==Board_v2.ARROW) {
-			// set to wall value
-			this.regionTiles[row][col] = Board_v2.WALL;
-		}
-		// set tile to region id
-		this.regionTiles[row][col] = regionId;
-	}
-	public void setRegionTile(int regionId, ArrayList<Integer> position) {
-		this.setRegionTile(regionId, position.get(0),position.get(1));
-	}
-	
-	/**
-	 * get region passed position is sitting in
-	 * @param position
-	 * @return
-	 */
-	public Region getRegion(ArrayList<Integer> position) {
-		int id = this.getRegionTile(position);
-		for (Region region : regions) {
-			if (region.id==id) {
-				return region;
-			}
-		}
-		// if never found region, output error
-		System.out.println("Never found requested region. Outputting null");
-		return null;
-	}
-	
-	/**
-	 * return adjacent regions to passed gate tile
-	 * @param position
-	 * @return
-	 */
-	public ArrayList<Region> getAdjacentRegions(ArrayList<Integer> position) {
-		// get sides of gate
-		ArrayList<ArrayList<Integer>> sides = this.getSidesOfGate(position, new boolean[11][11]);
-		// make list of regions
-		ArrayList<Region> regions = new ArrayList<Region>();
-		// loop through sides adding new regions to list
-		for (ArrayList<Integer> side : sides) {
-			int sideId = this.getRegionTile(side);
-			// loop through regions list to see if it matches
-			boolean inList = false;
-			for (Region region : regions) {
-				// check if same region as already in list
-				if (region.id==sideId) {
-					inList = true;
-					break;
-				}
-			}
-			// check if wasnt in list
-			if (inList==false) {
-				// add to list
-				regions.add(this.getRegion(side));
-			}
-		}
-		// return list of regions
-		return regions;
-	}
-
-	/**
-	 * Get list of regions in this board state
-	 * @return list of regions
-	 */
-	public ArrayList<Region> getRegionsList() {
-		return (ArrayList<Region>) this.regions.clone();
-	}
-	
-	/**
-	 * Make new region with passed tiles and add to regions list within board
-	 * @param tiles
-	 */
-	public void makeNewRegion(ArrayList<ArrayList<Integer>> tiles) {
-		this.regions.add( new Region(this, tiles) );
-	}
-
-	
-	/**
-	 * NOT FULLY COMPLETED
-	 * need to add/remove region tiles to/from regions
-	 * 
-	 * check if arrow replaces gateway or region tile
-	 * for replaces gateway, check adjacent tiles for if any are no longer gateways and add to region they not belong to
-	 * for replaces region tile, check if any new gates need to be made and if these gates make new regions
-	 * 
-	 * Investigate how new arrow changes board regions
-	 * add wall, add/remove gateways, add/remove adjacent region connections, partition region
-	 * 
-	 * @param arrow position of arrow thrown by action sent to applyAction() 
-	 */
-	public void investigateArrow(ArrayList<Integer> arrow) {
-		// System.out.println("Arrow tile was " + this.getRegionTile(arrow.get(0), arrow.get(1)));
-		// check if arrow position was gateway 
-		if (this.getRegionTile(arrow.get(0), arrow.get(1))==Board_v2.GATEWAY) {
-			// System.out.println("Arrow was a gateway");
-			// update arrow position to wall on region board
-			this.setRegionTile(Board_v2.WALL, arrow.get(0), arrow.get(1));
-			// check if adjacent gateways are no longer gateways
-			ArrayList<ArrayList<Integer>> adjacentTiles = this.getAdjacentTiles(arrow);
-			for (ArrayList<Integer> tile : adjacentTiles) {
-				// check if should not be gate but is
-				if (this.isGate(tile)==false && this.getRegionTile(tile.get(0),tile.get(1))==Board_v2.GATEWAY) {
-					// System.out.println("Adjacent gate is no longer a gate");
-					// get adjacent tiles
-					ArrayList<ArrayList<Integer>> adjTiles = this.getAdjacentTiles(tile);
-					boolean allGates = true;
-					for (ArrayList<Integer> t : adjTiles) {
-						// check if region tile
-						if (this.getRegionTile(t.get(0),t.get(1))!=Board_v2.GATEWAY && 
-								this.getRegionTile(t.get(0),t.get(1))!=Board_v2.WALL) {
-							// System.out.println("Found region to take value of");
-							// should only be one type of region so can take first one 
-							// set what was gate to found region
-							this.setRegionTile(this.getRegionTile(t.get(0), t.get(1)), tile.get(0), tile.get(1));
-							// set allGates to false so as to not create new region
-							allGates = false;
-							break;
-						}
-					}
-					// check if allGates was never flipped ie no adjacent region ie needs new region
-					if (allGates==true) {
-						// System.out.println("Did not find region to take value of");
-						// make list of just the one tile that used to be a gate
-						ArrayList<ArrayList<Integer>> loneTile = new ArrayList<ArrayList<Integer>>();
-						loneTile.add(tile);
-						// make new region with list of 1 tile
-						this.makeNewRegion(loneTile);
-					}
-					
-				}
-			}
-		}
-		// check if arrow position was region tile -> make new gateways
-		else if (this.getRegionTile(arrow.get(0), arrow.get(1))!=Board_v2.WALL) {
-			// System.out.println("Arrow was a region tile");
-			// update arrow position to wall on region board
-			this.setRegionTile(Board_v2.WALL, arrow.get(0), arrow.get(1));
-			// check if adjacent tiles are now gates
-			ArrayList<ArrayList<Integer>> adjacentTiles = this.getAdjacentTiles(arrow);
-			for (ArrayList<Integer> tile : adjacentTiles) {
-				// check if tile should be gateway
-				if (this.isGate(tile)) {
-					// set tile state to gateway
-					this.setRegionTile(Board_v2.GATEWAY, tile.get(0), tile.get(1));
-					// get sides to gate
-					ArrayList<ArrayList<Integer>> sides = this.getSidesOfGate(tile, new boolean[11][11]);
-					// check if any 2 sides are same region
-					for (int i=0; i<sides.size(); i++) {
-						for (int j=0; j<sides.size(); j++) {
-							// ignore checking side with itself
-							if(i==j) {
-								continue;
-							}
-							// check if 2 separate sides have same region -> check for partition
-							if (this.getRegionTile(sides.get(i).get(0), sides.get(i).get(1))==this.getRegionTile(sides.get(j).get(0), sides.get(j).get(1))) {
-								// check if 2 sides are now disconnected and make into new region if they are
-								this.partition(sides.get(i), sides.get(j));
-							}
-							// dont need to do anything for if sides have different regions -> updated later
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Get list of all adjacent positions except for out of bounds 
-	 * after calling function, loop through list taking tiles that are wanted
-	 * @param position
-	 * @return list of up to 8 tiles on board adjacent to passed position
-	 */
-	public ArrayList<ArrayList<Integer>> getAdjacentTiles(ArrayList<Integer> position) {
-		// create list to hold adjacent tiles
-		ArrayList<ArrayList<Integer>> adjacents = new ArrayList<ArrayList<Integer>>();
-		// loop through all 8 adjacent tiles
-		for (int i=0; i<8; i++) {
-			// get difference in position to current adjacent tile
-			int dx,dy;
-			switch (i) {
-			case 0: dy=0; dx=1; break;
-			case 1: dy=1; dx=1; break;
-			case 2: dy=1; dx=0; break;
-			case 3: dy=1; dx=-1; break;
-			case 4: dy=0; dx=-1; break;
-			case 5: dy=-1; dx=-1; break;
-			case 6: dy=-1; dx=0; break;
-			case 7: dy=-1; dx=1; break;
-			default: dy=0; dx=0; 
-			}
-			if (this.getTile(position)==Board_v2.OUTOFBOUNDS) {
-				// skip
-				continue;
-			}
-			// add tile to adjacents
-			ArrayList<Integer> tile = new ArrayList<Integer>();
-			tile.add(position.get(0)+dy);
-			tile.add(position.get(1)+dx);
-			adjacents.add(tile);
-		}
-		// return list of 8 tiles
-		return adjacents;
-	}
-	
-	/**
-	 * Determine if passed tile position qualifies as a gateway
-	 * use switch statement with all the different possible gateways and see if it matches
-	 * @param position
-	 * @return true if passed position is a gateway
-	 */
-	public boolean isGate(ArrayList<Integer> position) {
-		// check if position is not region tile ie cant be made into gate
-		if (this.getTile(position)==Board_v2.OUTOFBOUNDS || this.getRegionTile(position.get(0), position.get(1))==Board_v2.WALL) {
-			// cant make into gate
-			return false;
-		}
-		// look at adjacent tiles and save which ones are walls
-		ArrayList<ArrayList<Integer>> adjacents = this.getAdjacentTiles(position);
-		// create array to hold adjacent walls
-		boolean[] walls = new boolean[8];
-		for (int i=0; i<adjacents.size(); i++) {
-			// check if tile is wall
-			if (this.getRegionTile(adjacents.get(i).get(0),adjacents.get(i).get(1))==Board_v2.WALL) {
-				walls[i] = true;
-			}
-		}
-		// switch through the different gateway types and return true once it matches one
-		// checks if walls are in right spot, and sides of gate have at least one opening
-		if (walls[0] && walls[4] && (walls[1]==false || walls[2]==false || walls[3]==false) && (walls[5]==false || walls[6]==false || walls[7]==false)) {
-			// up down gate
-			return true;
-		}
-		else if (walls[2] && walls[6] && (walls[3]==false || walls[4]==false || walls[5]==false) && (walls[7]==false || walls[0]==false || walls[1]==false)) {
-			// left right gate
-			return true;
-		}
-		else if (walls[0] && walls[2] && (walls[1]==false) && (walls[3]==false || walls[4]==false || walls[5]==false || walls[6]==false || walls[7]==false)) {
-			// up,right gate
-			return true;
-		}
-		else if (walls[2] && walls[4] && (walls[3]==false) && (walls[5]==false || walls[6]==false || walls[7]==false || walls[0]==false || walls[1]==false)) {
-			// up,left gate
-			return true;
-		}
-		else if (walls[4] && walls[6] && (walls[5]==false) && (walls[7]==false || walls[0]==false || walls[1]==false || walls[2]==false || walls[3]==false)) {
-			// down,left gate
-			return true;
-		}
-		else if (walls[6] && walls[0] && (walls[7]==false) && (walls[1]==false || walls[2]==false || walls[3]==false || walls[4]==false || walls[5]==false)) {
-			// down right gate
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-	
-	/**
-	 * get position of a tile on each side of gate
-	 * the position is whatever first position is found in a set
-	 * recurse through gates to get to sides
-	 * loop through gate adjacent tiles (not walls)
-	 * shouldn't have duplicates b/c of checked array
-	 * @param gate current gate being checked
-	 * @return list of positions disconnected from each other
-	 */
-	public ArrayList<ArrayList<Integer>> getSidesOfGate(ArrayList<Integer> gate, boolean[][] checked) {
-		// mark gate as checked
-		checked[gate.get(0)][gate.get(1)] = true;
-		// make list to hold sides
-		ArrayList<ArrayList<Integer>> sides = new ArrayList<ArrayList<Integer>>();
-		// create var to hold idx of start of current side, -1 when not working on side yet
-		int sideStart = -1;
-		// get adjacent tiles
-		ArrayList<ArrayList<Integer>> adjacents = this.getAdjacentTiles(gate);
-		// loop through adjacent tiles
-		for (int i=0; i<8; i++) {
-			// check if outofbounds
-			if (this.getTile(adjacents.get(i))==Board_v2.OUTOFBOUNDS) {
-				// skip
-				continue;
-			}
-			// check if gate
-			if (this.getRegionTile(adjacents.get(i).get(0), adjacents.get(i).get(1))==Board_v2.GATEWAY) {
-				// if building side, stop and send it to list
-				if (sideStart>=0) {
-					// add saved side position to list
-					sides.add(adjacents.get(sideStart));
-					// revert sideStart
-					sideStart = -1;
-				}
-				// check if already checked
-				if (checked[adjacents.get(i).get(0)][adjacents.get(i).get(1)]) {
-					// skip since already looked into
-					continue;
-				}
-				// get sides from this gate by recursing into it
-				ArrayList<ArrayList<Integer>> newSides = this.getSidesOfGate(adjacents.get(i), checked);
-				// add sides to list
-				for (ArrayList<Integer> s : newSides) {
-					sides.add(s);
-				}
-			}
-			// check if wall tile
-			else if (this.getRegionTile(adjacents.get(i).get(0), adjacents.get(i).get(1))==Board_v2.WALL) {
-				// if building side, stop and send it to list
-				if (sideStart>=0) {
-					// add saved side position to list
-					sides.add(adjacents.get(sideStart));
-					// revert sideStart
-					sideStart = -1;
-				}
-			}
-			// check if region tile
-			else {
-				// check if already started side
-				if (sideStart>=0) {
-					// multi tiled side, already gave it a position
-				}
-				// check if not started side
-				if (sideStart<0) {
-					// start building side
-					sideStart = i;
-				}
-				// check if on last loop and working on side
-				if (i>=7 && sideStart>=0) {
-					// check if first tile was region
-					if (this.getRegionTile(adjacents.get(i).get(0), adjacents.get(i).get(1))!=Board_v2.GATEWAY &&
-							this.getRegionTile(adjacents.get(i).get(0), adjacents.get(i).get(1))!=Board_v2.WALL) {
-						// current side already counted in first side -> dont add
-					}
-					else {
-						// current side not already counted in first side
-						sides.add(adjacents.get(sideStart));
-					}
-				}
-			}
-		}
-		// return list of positions all pertaining to different sides of gate
-		return sides;
-	}
-	
-	/**
-	 * take 2 sides that have same region and see if they are connected ie should stay one region
-	 * @param side1
-	 * @param side2
-	 */
-	public void partition(ArrayList<Integer> side1, ArrayList<Integer> side2) {
-		// get all connected region tiles from side 1
-		ArrayList<ArrayList<Integer>> side1Tiles = this.getConnectedRegionTiles(side1, side2, new boolean[11][11]);
-		// check if last element is the side2 position
-		if (side1Tiles.get(side1Tiles.size()-1).equals(side2)) {
-			// 2 sides are connected -> dont make new region
-		}
-		else {
-			// 2 sides are disconnected but same region -> make new region
-			this.makeNewRegion(side1Tiles);
-		}
-	}
-	
-	/**
-	 * get list of connected region tiles
-	 * shoudln't be duplicates because of checked array
-	 * last position will either be the goal or be the last possible tile
-	 * @param tile
-	 * @param goal
-	 * @param checked
-	 * @return list of connected tiles from current
-	 */
-	public ArrayList<ArrayList<Integer>> getConnectedRegionTiles(ArrayList<Integer> tile, ArrayList<Integer> goal, boolean[][] checked) {
-		// mark tile as checked
-		checked[tile.get(0)][tile.get(1)] = true;
-		// create list to store tiles
-		ArrayList<ArrayList<Integer>> regionTiles = new ArrayList<ArrayList<Integer>>();
-		// add current tile to list
-		regionTiles.add(tile);
-		// get adjacent tiles
-		ArrayList<ArrayList<Integer>> adjacents = this.getAdjacentTiles(tile);
-		// loop through adjacent tiles
-		for (int i=0; i<8; i++) {
-			// check if outofbounds
-			if (this.getTile(adjacents.get(i))==Board_v2.OUTOFBOUNDS) {
-				// skip
-				continue;
-			}
-			// check if goal state found -> don't do anymore additions -> exit
-			if (goal!=null && checked[goal.get(0)][goal.get(1)]) {
-				return regionTiles;
-			}
-			// check if gate or wall
-			if (this.getRegionTile(adjacents.get(i).get(0), adjacents.get(i).get(1))==Board_v2.GATEWAY ||
-				this.getRegionTile(adjacents.get(i).get(0), adjacents.get(i).get(1))==Board_v2.WALL ) {
-				// dont add this tile, dont recurse into this tile
-				continue;
-			}
-			// check if region tile
-			else {
-				// check if goal state
-				if (goal!=null && adjacents.get(i).equals(goal)) {
-					// add goal state to list and checked and break out to not waste time
-					regionTiles.add(goal);
-					checked[goal.get(0)][goal.get(1)] = true;
-					break;
-				}
-				// check if tile already checked
-				if (checked[adjacents.get(i).get(0)][adjacents.get(i).get(1)]) {
-					// this tile already done
-					continue;
-				}
-				// get list from tile
-				ArrayList<ArrayList<Integer>> foundTiles = this.getConnectedRegionTiles(adjacents.get(i), goal, checked);
-				for (ArrayList<Integer> t : foundTiles) {
-					regionTiles.add(t);
-				}
-			}
-		}
-		// return list of regionTiles found
-		return regionTiles;
-	}
-	
-	
-	/**
-	 * Used in region.updateGatewayTiles() to get all region gateways
-	 * @param gate
-	 * @param checked
-	 * @return
-	 */
-	public ArrayList<ArrayList<Integer>> getConnectedGateways(ArrayList<Integer> gate, boolean[][] checked) {
-		// mark tile as checked
-		checked[gate.get(0)][gate.get(1)] = true;
-		// create list to store tiles
-		ArrayList<ArrayList<Integer>> gateways = new ArrayList<ArrayList<Integer>>();
-		// add current tile to list
-		gateways.add(gate);
-		// get adjacent tiles
-		ArrayList<ArrayList<Integer>> adjacents = this.getAdjacentTiles(gate);
-		// loop through adjacent tiles
-		for (int i=0; i<8; i++) {
-			// check if outofbounds
-			if (this.getTile(adjacents.get(i))==Board_v2.OUTOFBOUNDS) {
-				// skip
-				continue;
-			}
-			// check if tile already checked
-			if (checked[adjacents.get(i).get(0)][adjacents.get(i).get(1)]) {
-				// this tile already done
-				continue;
-			}
-			// check if gate
-			if (this.getRegionTile(adjacents.get(i).get(0),adjacents.get(i).get(1))==Board_v2.GATEWAY) {
-				// get list from tile
-				ArrayList<ArrayList<Integer>> foundTiles = this.getConnectedGateways(adjacents.get(i),checked);
-				for (ArrayList<Integer> t : foundTiles) {
-					gateways.add(t);
-				}
-			}
-		}
-		// return list of gateways found
-		return gateways;
-	}
-	
-	/**
-	 * Outputs version of board without queens, looking at regions
-	 * arrows are walls(W) and all other spaces are distinguished by their region id 
-	 * only used in testing
-	 * toString method now updated to show region of tiles with no queens on them
-	 * @return
-	 */
-	public String regionsToString() {
-		String output = "\nState of Board: \n";
-		output += "  -   -   -   -   -   -   -   -   -   -  \n";
-		for (int row=10; row>=1; row--) {
-			output += "|";
-			for (int col=1; col<11; col++) {
-				switch (this.regionTiles[row][col]) {
-				case Board_v2.WALL: output += " W "; break;
-				case Board_v2.GATEWAY: output += " G "; break;
-				default: output += " " + this.regionTiles[row][col] + " "; break;
-				}
-				output += "|";
-			}
-			// output += " " + row + "\n";
-			output += "\n";
-			output += "  -   -   -   -   -   -   -   -   -   -  \n";
-		}
-		// output += "  1   2   3   4   5   6   7   8   9   10 \n";
+//		else if (this.regions.size()<10) {
+//			output += "  -   -   -   -   -   -   -   -   -   -  \n";
+//			for (int row=10; row>=1; row--) {
+//				output += "|";
+//				for (int col=1; col<11; col++) {
+//					switch (this.tiles[row][col]) {
+//					case Board_v2.EMPTY: 
+//						switch (this.regionTiles[row][col]) {
+//						case Board_v2.GATEWAY: 
+//							output += " ' "; 
+//							break;
+//						default: 
+//							output += " " + this.regionTiles[row][col] + " "; 
+//						}
+//						break;
+//					case Board_v2.BLACK: output += " B "; break;
+//					case Board_v2.WHITE: output += " W "; break;
+//					case Board_v2.ARROW: output += " * "; break;
+//					}
+//					output += "|";
+//				}
+//				// output += " " + row + "\n";
+//				output += "\n";
+//				output += "  -   -   -   -   -   -   -   -   -   -  \n";
+//			}
+//			// output += "  1   2   3   4   5   6   7   8   9   10 \n";
+//			return output;
+//		}
+//		else {
+//			output += "  --   --   --   --   --   --   --   --   --   --  \n";
+//			for (int row=10; row>=1; row--) {
+//				output += "|";
+//				for (int col=1; col<11; col++) {
+//					switch (this.tiles[row][col]) {
+//					case Board_v2.EMPTY: 
+//						switch (this.regionTiles[row][col]) {
+//						case Board_v2.GATEWAY: 
+//							output += " '  "; 
+//							break;
+//						default: 
+//							output += " " + this.regionTiles[row][col]; 
+//							// add trailing spaces depending on size of tile region id
+//							output += (this.regionTiles[row][col]<10)? ("  "):(" ");
+//						}
+//						break;
+//					case Board_v2.BLACK: output += " B  "; break;
+//					case Board_v2.WHITE: output += " W  "; break;
+//					case Board_v2.ARROW: output += " *  "; break;
+//					}
+//					output += "|";
+//				}
+//				// output += " " + row + "\n";
+//				output += "\n";
+//				output += "  --   --   --   --   --   --   --   --   --   --  \n";
+//			}
+//			// output += "  1   2   3   4   5   6   7   8   9   10 \n";
+//			return output;
+//		}
 		return output;
 	}
 	
-	public void updateRegions() {
-		// String output = "";
-		// loop through regions on board
-		for (int i=0; i<regions.size(); i++) {
-			// update region with current state of board
-			regions.get(i).update(this);
-			// check if empty region
-			if (regions.get(i).regionTiles.size()<1) {
-				// System.out.println("Region "+regions.get(i).id+" is empty");
-				// regions.remove(i); -> shouldnt remove
-			}
-			// output += "Region:"+region.id+" has size "+region.size+", ";
-		}
-		// System.out.println(output);
-	}
+	
+//	//-- REGION METHODS ATTEMPT 2 --//
+//	/**
+//	 * Get Region passed tile belongs to, otherwise gate or wall
+//	 * @param row
+//	 * @param col
+//	 * @return id of tile's region
+//	 */
+//	public int getTileRegion(int row, int col) {
+//		// check if out of bounds
+//		if (this.getTile(row,col)==Board_v2.OUTOFBOUNDS) {
+//			return Board_v2.WALL;
+//		}
+//		// check if arrow
+//		if (this.getTile(row,col)==Board_v2.ARROW) {
+//			return Board_v2.WALL;
+//		}
+//		// check if gate
+//		if (this.tiles[row][col]==Board_v2.GATEWAY) {
+//			return Board_v2.GATEWAY;
+//		}
+//		// else return region id
+//		return this.regionTiles[row][col];
+//	}
+//	public int getTileRegion(ArrayList<Integer> position) {
+//		return this.getTileRegion(position.get(0), position.get(1));
+//	}
+//	
+//	/**
+//	 * Set region of passed tile to passed regionId(id/gate/wall)
+//	 * @param row
+//	 * @param col
+//	 */
+//	public void setTileRegion(int regionId, int row, int col) {
+//		// check if out of bounds
+//		if (this.getTile(row,col)==Board_v2.OUTOFBOUNDS) {
+//			// cant set out of bounds tile
+//			return;
+//		}
+//		// check if arrow
+//		if (this.getTile(row,col)==Board_v2.ARROW) {
+//			// can only set arrow to wall
+//			this.regionTiles[row][col] = Board_v2.WALL;
+//			return;
+//		}
+//		// else set to regionId
+//		this.regionTiles[row][col] = regionId;
+//	}
+//	public void setTileRegion(int regionId, ArrayList<Integer> position) {
+//		this.setTileRegion(regionId, position.get(0), position.get(1));
+//	}
+//	
+//	/**
+//	 * Get regions(s) of passed tile
+//	 * @param position
+//	 * @return tile's region if region tile, touching regions if gateway, empty list otherwise
+//	 */
+//	public ArrayList<Region> getRegion(ArrayList<Integer> position) {
+//		// make list to hold regions
+//		ArrayList<Region> regions = new ArrayList<Region>();
+//		// check if out of bounds
+//		if (this.getTile(position)==Board_v2.OUTOFBOUNDS) {
+//			// no regions for out of bounds tile
+//			return regions;
+//		}
+//		// check if arrow
+//		if (this.getTile(position)==Board_v2.ARROW) {
+//			// no regions for arrows
+//			return regions;
+//		}
+//		// check if gate
+//		if (this.getTile(position)==Board_v2.GATEWAY) {
+//			// get gate sides
+//			ArrayList<ArrayList<Integer>> sides = this.getGateSides(position);
+//			// loop through sides
+//			for (ArrayList<Integer> side : sides) {
+//				// get region of side
+//				Region newRegion = this.getRegion(side).get(0);
+//				// check if region has already been added to list
+//				boolean added = false;
+//				for (Region region : regions) {
+//					if (region.id==newRegion.id) {
+//						// already added
+//						added = true;
+//						break;
+//					}
+//				}
+//				if (added==false) {
+//					// not found in list, add now
+//					regions.add(newRegion);
+//				}
+//			}
+//			// return list of regions
+//			return regions;
+//		}
+//		// else is region tile
+//		// get id from tile
+//		int regionId = this.getTileRegion(position);
+//		// loop through regions for matching id
+//		for (Region region : this.regions) {
+//			if (region.id==regionId) {
+//				// found matching region
+//				regions.add(region);
+//				// return list of 1 region
+//				return regions;
+//			}
+//		}
+//		// else tile has unidentified region -> return empty list
+//		return regions; 
+//	}
+//	public ArrayList<Region> getRegion(int row, int col) {
+//		ArrayList<Integer> position = new ArrayList<Integer>();
+//		position.add(row);
+//		position.add(col);
+//		return this.getRegion(position);
+//	}
+//	
+//	/**
+//	 * Create region out of passed tiles and add to board's list
+//	 * @param tiles
+//	 */
+//	public void addRegion(ArrayList<ArrayList<Integer>> tiles) {
+//		this.regions.add( new Region(new Board_v2(this), tiles));
+//	}
+//	
+//	/**
+//	 * Update tile region data due to new arrow on board
+//	 * not completed yet
+//	 * @param arrow
+//	 */
+//	public void investigateArrow(ArrayList<Integer> arrow) {
+//		// check if arrow position was gate
+//		if (this.getTileRegion(arrow)==Board_v2.GATEWAY) {
+//			// update board region value to wall
+//			this.setTileRegion(Board_v2.WALL, arrow);
+//			// get adjacent tiles
+//			ArrayList<ArrayList<Integer>> adjacentTiles= this.getAdjacentTiles(arrow);
+//			// loop through adjacent tiles
+//			for (ArrayList<Integer> adjacentTile : adjacentTiles) {
+//				// check if is gate but shouldnt be
+//				if (this.isGate(adjacentTile)==false && this.getTileRegion(arrow)==Board_v2.GATEWAY) {
+//					// get gate's adjacent tiles
+//					ArrayList<ArrayList<Integer>> gateAdjacents = this.getAdjacentTiles(adjacentTile);
+//					// loop through gate adjacents
+//					boolean allGates = true;
+//					for (ArrayList<Integer> gateAdjacent : gateAdjacents) {
+//						if (this.isRegionTile(gateAdjacent)) {
+//							allGates = false;
+//							// take region id from this tile for gate
+//							this.setTileRegion(this.getTileRegion(gateAdjacent), adjacentTile);
+//							break;
+//						}
+//					}
+//					// check if all gates
+//					if (allGates) {
+//						// make new region 1 tile big out of what was gate
+//						ArrayList<ArrayList<Integer>> tiles = new ArrayList<ArrayList<Integer>>();
+//						tiles.add(adjacentTile);
+//						this.addRegion(tiles);
+//					}
+//				}
+//			}
+//		}
+//		// else is region tile
+//		else {
+//			// update board region value to wall
+//			this.setTileRegion(Board_v2.WALL, arrow);
+//			// get adjacent tiles
+//			ArrayList<ArrayList<Integer>> adjacentTiles= this.getAdjacentTiles(arrow);
+//			// loop through adjacent tiles
+//			for (ArrayList<Integer> adjacentTile : adjacentTiles) {
+//				// check if gate
+//				if (this.isGate(adjacentTile)) {
+//					// set to gate on board
+//					this.setTileRegion(Board_v2.GATEWAY, adjacentTile);
+//					// get sides of gate
+//					ArrayList<ArrayList<Integer>> sides = this.getGateSides(adjacentTile);
+//					// loop through sides
+//					for (ArrayList<Integer> side1 : sides) {
+//						// loop through sides to compare
+//						for (ArrayList<Integer> side2 : sides) {
+//							// check if same side
+//							if (side1.equals(side2)) {
+//								// skip
+//								continue;
+//							}
+//							// check if sides are same region
+//							if (this.getTileRegion(side1)==this.getTileRegion(side2)) {
+//								// partition into new region if not connected
+//								this.partition(side1, side2);
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//	
+//	/**
+//	 * Determine if passed tile qualifies as a gate on the board
+//	 * @param position
+//	 * @return true if should be gate
+//	 */
+//	public boolean isGate(ArrayList<Integer> position) {
+//		// check if passed position is out of bounds
+//		if (this.getTile(position)==Board_v2.OUTOFBOUNDS) {
+//			return false;
+//		}
+//		// check if passed position is arrow
+//		if (this.getTile(position)==Board_v2.ARROW) {
+//			return false;
+//		}
+//		// initialize boolean array to hold whether adjacent is wall or not
+//		boolean[] walls = new boolean[8];
+//		// get list of adjacent tiles
+//		ArrayList<ArrayList<Integer>> adjacentTiles = this.getAdjacentTiles(position);
+//		// loop through adjacent tiles
+//		for (int i=0; i<adjacentTiles.size(); i++) {
+//			// check if adjacent tile is a wall
+//			if (this.getTileRegion(adjacentTiles.get(i))==Board_v2.WALL) {
+//				// mark adjacent position as wall
+//				walls[i] = true;
+//			}
+//		}
+//		// check if position with adjacent walls matches form of gate
+//		// 2 walls in correct position, as well as at least 1 non wall tile on both sides
+//		
+//		// check if horizantal gate
+//		if (walls[0] && walls[4] && (walls[1]==false || walls[2]==false || walls[3]==false) && (walls[5]==false || walls[6]==false || walls[7]==false)) {
+//			// up down gate
+//			return true;
+//		}
+//		// check if vertical gate
+//		else if (walls[2] && walls[6] && (walls[3]==false || walls[4]==false || walls[5]==false) && (walls[7]==false || walls[0]==false || walls[1]==false)) {
+//			// left right gate
+//			return true;
+//		}
+//		// check if top right gate
+//		else if (walls[0] && walls[2] && (walls[1]==false) && (walls[3]==false || walls[4]==false || walls[5]==false || walls[6]==false || walls[7]==false)) {
+//			// up,right gate
+//			return true;
+//		}
+//		// check if top left gate
+//		else if (walls[2] && walls[4] && (walls[3]==false) && (walls[5]==false || walls[6]==false || walls[7]==false || walls[0]==false || walls[1]==false)) {
+//			// up,left gate
+//			return true;
+//		}
+//		// check if bottom left gate
+//		else if (walls[4] && walls[6] && (walls[5]==false) && (walls[7]==false || walls[0]==false || walls[1]==false || walls[2]==false || walls[3]==false)) {
+//			// down,left gate
+//			return true;
+//		}
+//		// check if bottom right gate
+//		else if (walls[6] && walls[0] && (walls[7]==false) && (walls[1]==false || walls[2]==false || walls[3]==false || walls[4]==false || walls[5]==false)) {
+//			// down right gate
+//			return true;
+//		}
+//		// no gate forms flagged ie not gate
+//		else {
+//			return false;
+//		}
+//	}
+//	
+//	/**
+//	 * Determine if passed tile belongs to region (ie not gate or wall)
+//	 * @param position
+//	 * @return
+//	 */
+//	public boolean isRegionTile(ArrayList<Integer> position) {
+//		if (this.getTileRegion(position)!=Board_v2.WALL && this.getTileRegion(position)!=Board_v2.GATEWAY) {
+//			return true;
+//		}
+//		else {
+//			return false;
+//		}
+//	}
+//	
+//	/**
+//	 * Recurse through adjacent gates to get list of all adjacent region tiles
+//	 * will work differently than original
+//	 * @param gate
+//	 * @return
+//	 */
+//	public ArrayList<ArrayList<Integer>> getGateSides(ArrayList<Integer> position) {
+//		// make list to return
+//		ArrayList<ArrayList<Integer>> sides = new ArrayList<ArrayList<Integer>>();
+//		// get connected gates
+//		ArrayList<ArrayList<Integer>> gates = this.getConnectedGates(position,new boolean[11][11]);
+//		// loop through and get each touching region
+//		for (ArrayList<Integer> gate : gates) {
+//			// get adjacent tiles to gate
+//			ArrayList<ArrayList<Integer>> adjacentTiles = this.getAdjacentTiles(gate);
+//			// loop through adjacent tiles
+//			for (ArrayList<Integer> adjacentTile : adjacentTiles) {
+//				// check if adjacent tile is region tile
+//				if (this.isRegionTile(adjacentTile)) {
+//					// check if position has already been added to list
+//					boolean added = false;
+//					for (ArrayList<Integer> side : sides) {
+//						// check if adjacentTile matches side in list
+//						if (side.equals(adjacentTile)) {
+//							// position already listed, dont add again
+//							added = true;
+//						}
+//					}
+//					if (added==false) {
+//						// not found in list, add now
+//						sides.add(adjacentTile);
+//					}
+//				}
+//			}
+//		}
+//		// return filled list
+//		return sides; 
+//	}
+//	
+//	/**
+//	 * Recurse through adjacent region tiles from side1 to side2 and make new region if disconnected
+//	 * @param side1
+//	 * @param side2
+//	 */
+//	public void partition(ArrayList<Integer> side1, ArrayList<Integer> side2) {
+//		// check if both sides part of same region
+//		if (this.getTileRegion(side1)!=this.getTileRegion(side2)) {
+//			// dont do anything
+//			return;
+//		}
+//		// get all connected region tiles of side1
+//		ArrayList<ArrayList<Integer>> region1Tiles = this.getConnectedRegionTiles(side1,new boolean[11][11]);
+//		// create boolean to hold if found
+//		boolean foundSide2 = false;
+//		// loop through connected tiles
+//		for (ArrayList<Integer> region1Tile : region1Tiles) {
+//			// check if side2 found in connected tiles
+//			if (region1Tile.equals(side2)) {
+//				// side 2 found
+//				foundSide2 = true;
+//				break;
+//			}
+//		}
+//		// check if side2 was not found
+//		if (foundSide2==false) {
+//			// create new region out of found tiles
+//			this.addRegion(region1Tiles);
+//		}
+//	}
+//	
+//	/**
+//	 * Recurse through adjacent region tiles, 
+//	 * not completed
+//	 * @param position
+//	 * @param checked 11x11 array holding which positions on board have already been recursed into
+//	 * @return list of region tiles found
+//	 */
+//	public ArrayList<ArrayList<Integer>> getConnectedRegionTiles(ArrayList<Integer> position, boolean[][] checked) {
+//		// mark current tile as checked
+//		checked[position.get(0)][position.get(1)] = true;
+//		// create list to hold connected tiles
+//		ArrayList<ArrayList<Integer>> connectedTiles = new ArrayList<ArrayList<Integer>>();
+//		// check if not region tile
+//		if (this.isRegionTile(position)==false) {
+//			// stop recursing and dont add current tile to list
+//			return connectedTiles;
+//		}
+//		// else is region tile
+//		connectedTiles.add(position);
+//		// get adjacent tiles
+//		ArrayList<ArrayList<Integer>> adjacentTiles = this.getAdjacentTiles(position);
+//		// loop through adjacent tiles
+//		for (ArrayList<Integer> adjacentTile : adjacentTiles) {
+//			// check if tile in bounds
+//			if (this.getTile(adjacentTile)==Board_v2.OUTOFBOUNDS) {
+//				// skip cause not a real tile on board
+//				continue;
+//			}
+//			// check if adjacent tile is already checked
+//			if (checked[adjacentTile.get(0)][adjacentTile.get(1)]) {
+//				// dont recurse into adjacent tile that has already been done
+//				continue;
+//			}
+//			// recurse into adjacent tile adding all its found tiles to list
+//			connectedTiles.addAll(this.getConnectedRegionTiles(adjacentTile,checked));
+//		}
+//		// return filled list
+//		return connectedTiles;
+//	}
+//	
+//	/**
+//	 * Recurse through adjacent gate tiles 
+//	 * @param position
+//	 * @param checked
+//	 * @return list of gate tiles found
+//	 */
+//	public ArrayList<ArrayList<Integer>> getConnectedGates(ArrayList<Integer> position, boolean[][] checked) {
+//		// mark current tile as checked
+//		checked[position.get(0)][position.get(1)] = true;
+//		// create list to hold connected tiles
+//		ArrayList<ArrayList<Integer>> connectedTiles = new ArrayList<ArrayList<Integer>>();
+//		// check if not region tile
+//		if (this.isGate(position)==false) {
+//			// stop recursing and dont add current tile to list
+//			return connectedTiles;
+//		}
+//		// else is region tile
+//		connectedTiles.add(position);
+//		// get adjacent tiles
+//		ArrayList<ArrayList<Integer>> adjacentTiles = this.getAdjacentTiles(position);
+//		// loop through adjacent tiles
+//		for (ArrayList<Integer> adjacentTile : adjacentTiles) {
+//			// check if tile in bounds
+//			if (this.getTile(adjacentTile)==Board_v2.OUTOFBOUNDS) {
+//				// skip cause not a real tile on board
+//				continue;
+//			}
+//			// check if adjacent tile is already checked
+//			if (checked[adjacentTile.get(0)][adjacentTile.get(1)]) {
+//				// dont recurse into adjacent tile that has already been done
+//				continue;
+//			}
+//			// recurse into adjacent tile adding all its found tiles to list
+//			connectedTiles.addAll(this.getConnectedGates(adjacentTile,checked));
+//		}
+//		// return filled list
+//		return connectedTiles;
+//	}
+//	
+//	/**
+//	 * Loop through each region in board's list and run the update function
+//	 */
+//	public void updateRegions() {
+//		for (int i=0; i<regions.size(); i++) {
+//			regions.get(i).update(this);
+//			if (regions.get(i).getSize()<=0) {
+//				regions.remove(i--);
+//			}
+//		}
+//	}
+//	
+//	//-- REGION SUPPORT METHODS, not region specific but used in region methods --//
+//	/**
+//	 * Get list of 8 adjacent tiles to passed tile
+//	 * include all tiles, including out of bounds
+//	 * @param position
+//	 * @return list of 8 positions surrounding passed position
+//	 */
+//	public ArrayList<ArrayList<Integer>> getAdjacentTiles(ArrayList<Integer> position) {
+//		// create list to hold adjacent tiles
+//		ArrayList<ArrayList<Integer>> adjacentTiles = new ArrayList<ArrayList<Integer>>();
+//		// loop through 8 adjacent positions
+//		for (int i=0; i<8; i++) {
+//			// initialize position differences
+//			int dx = 0, dy = 0;
+//			// select values for dx and dy to access the different tiles
+//			switch (i) {
+//			case 0: dy=0; dx=1; break;
+//			case 1: dy=1; dx=1; break;
+//			case 2: dy=1; dx=0; break;
+//			case 3: dy=1; dx=-1; break;
+//			case 4: dy=0; dx=-1; break;
+//			case 5: dy=-1; dx=-1; break;
+//			case 6: dy=-1; dx=0; break;
+//			case 7: dy=-1; dx=1; break;
+//			default: dy=0; dx=0; 
+//			}
+//			// add posiiton to list
+//			ArrayList<Integer> adjacentTile = new ArrayList<Integer>();
+//			adjacentTile.add(position.get(0)+dy);
+//			adjacentTile.add(position.get(1)+dx);
+//			adjacentTiles.add(adjacentTile);
+//		}
+//		// return filled list of 8 adjacent tiles
+//		return adjacentTiles; 
+//	}
+
 	
 }
 	

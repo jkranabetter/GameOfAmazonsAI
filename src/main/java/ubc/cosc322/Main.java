@@ -12,11 +12,11 @@ public class Main {
 		
 		// create ai
 		Player aiBlack = new SmartAI(Board_v2.BLACK, board);
-		Player aiWhite = new Opponent(Board_v2.WHITE, board);
+		Player aiWhite = new SmartAI(Board_v2.WHITE, board);
 		
 //		if (aiBlack instanceof SmartAI) {
 //			// System.out.println(((SmartAI) aiBlack).tileOwnershipHeuristic_v3(board));
-//			System.out.println(((SmartAI)aiBlack).regionsHeuristic_v3(board));
+//			System.out.println(((SmartAI)aiBlack).regionsHeuristic_v4(board));
 //			System.out.println(board);
 //			return;
 //		}
@@ -66,6 +66,17 @@ public class Main {
 			System.out.println("AI took " + (duration) + " seconds to make decision.");
 			// display new board
 			System.out.println(board);
+			
+//			// display regions
+//			if (board.regions.size()>0) {
+//				for (Region region : board.regions) {
+//					System.out.println("Region "+region.id+" has "+region.getQueensCount(board, Board_v2.BLACK)+" B's and "+region.getQueensCount(board, Board_v2.WHITE)+" W's in "+region.regionTiles.size()+" tiles and "+region.gatewayTiles.size()+" gates");
+//				}
+//			}
+			
+			
+			
+			
 			// switch player
 			player = (player==Board_v2.BLACK) ? (Board_v2.WHITE) : (Board_v2.BLACK);
 			// break; // TESTING
