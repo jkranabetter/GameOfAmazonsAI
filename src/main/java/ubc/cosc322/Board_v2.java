@@ -446,6 +446,42 @@ public class Board_v2 {
 		return output;
 	}
 	
+	//-- REGION SUPPORT METHODS, not region specific but used in region methods --//
+	/**
+	 * Get list of 8 adjacent tiles to passed tile
+	 * include all tiles, including out of bounds
+	 * @param position
+	 * @return list of 8 positions surrounding passed position
+	 */
+	public ArrayList<ArrayList<Integer>> getAdjacentTiles(ArrayList<Integer> position) {
+		// create list to hold adjacent tiles
+		ArrayList<ArrayList<Integer>> adjacentTiles = new ArrayList<ArrayList<Integer>>();
+		// loop through 8 adjacent positions
+		for (int i=0; i<8; i++) {
+			// initialize position differences
+			int dx = 0, dy = 0;
+			// select values for dx and dy to access the different tiles
+			switch (i) {
+			case 0: dy=0; dx=1; break;
+			case 1: dy=1; dx=1; break;
+			case 2: dy=1; dx=0; break;
+			case 3: dy=1; dx=-1; break;
+			case 4: dy=0; dx=-1; break;
+			case 5: dy=-1; dx=-1; break;
+			case 6: dy=-1; dx=0; break;
+			case 7: dy=-1; dx=1; break;
+			default: dy=0; dx=0; 
+			}
+			// add posiiton to list
+			ArrayList<Integer> adjacentTile = new ArrayList<Integer>();
+			adjacentTile.add(position.get(0)+dy);
+			adjacentTile.add(position.get(1)+dx);
+			adjacentTiles.add(adjacentTile);
+		}
+		// return filled list of 8 adjacent tiles
+		return adjacentTiles; 
+	}
+	
 	
 //	//-- REGION METHODS ATTEMPT 2 --//
 //	/**
@@ -884,41 +920,7 @@ public class Board_v2 {
 //		}
 //	}
 //	
-//	//-- REGION SUPPORT METHODS, not region specific but used in region methods --//
-//	/**
-//	 * Get list of 8 adjacent tiles to passed tile
-//	 * include all tiles, including out of bounds
-//	 * @param position
-//	 * @return list of 8 positions surrounding passed position
-//	 */
-//	public ArrayList<ArrayList<Integer>> getAdjacentTiles(ArrayList<Integer> position) {
-//		// create list to hold adjacent tiles
-//		ArrayList<ArrayList<Integer>> adjacentTiles = new ArrayList<ArrayList<Integer>>();
-//		// loop through 8 adjacent positions
-//		for (int i=0; i<8; i++) {
-//			// initialize position differences
-//			int dx = 0, dy = 0;
-//			// select values for dx and dy to access the different tiles
-//			switch (i) {
-//			case 0: dy=0; dx=1; break;
-//			case 1: dy=1; dx=1; break;
-//			case 2: dy=1; dx=0; break;
-//			case 3: dy=1; dx=-1; break;
-//			case 4: dy=0; dx=-1; break;
-//			case 5: dy=-1; dx=-1; break;
-//			case 6: dy=-1; dx=0; break;
-//			case 7: dy=-1; dx=1; break;
-//			default: dy=0; dx=0; 
-//			}
-//			// add posiiton to list
-//			ArrayList<Integer> adjacentTile = new ArrayList<Integer>();
-//			adjacentTile.add(position.get(0)+dy);
-//			adjacentTile.add(position.get(1)+dx);
-//			adjacentTiles.add(adjacentTile);
-//		}
-//		// return filled list of 8 adjacent tiles
-//		return adjacentTiles; 
-//	}
+
 
 	
 }

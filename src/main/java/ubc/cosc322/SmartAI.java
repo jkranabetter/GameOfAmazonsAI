@@ -81,7 +81,15 @@ public class SmartAI extends Player {
 //		}
 		
 		int actionsSize = this.getAllActions(player, trueBoard).size();
-		if (actionsSize<100) {
+		if (actionsSize<10) {
+			System.out.println("Not bothering with iterative search");
+			return this.minimax(trueBoard, 10);
+		}
+		else if (actionsSize<30) {
+			System.out.println("Initial Search depth set to 5");
+			searchDepth = 5;
+		}
+		else if (actionsSize<100) {
 			System.out.println("Initial Search depth set to 4");
 			searchDepth = 4;
 		}
@@ -187,12 +195,18 @@ public class SmartAI extends Player {
 			return score;
 		}
 		
-		// uncomment one
+		// best working version
 		score = this.totalActionsHeuristic(board);
-		// score = this.tileOwnershipHeuristic_v3(board);
+		
+//		// total actions is roughly 9 times larger than tileOwnership
+//		score = this.totalActionsHeuristic(board) + this.tileOwnershipHeuristic_v4(board);
+		
+		// uncomment one
+		// score = this.totalActionsHeuristic(board);
+		// score = this.tileOwnershipHeuristic_v4(board);
 		// score = this.regionsHeuristic_v4(board);
 		
-		// temp form
+		// old temp form
 //		if (board.turnCount<15) {
 //			score = this.totalActionsHeuristic(board);
 //		}
@@ -798,6 +812,151 @@ public class SmartAI extends Player {
 		return directTiles;
 	}
 	
+	/**
+	 * Final attempt before mock tournament
+	 * Use adjacent tiles method to closest queen
+	 * Loop through rows of tree until queen found
+	 * finish row to check if there are other queens at same depth
+	 * 
+	 * currently is just adding score for first queen found, so if 2 queens are equal distances away then 
+	 * @param board
+	 * @return
+	 */
+	public int tileOwnershipHeuristic_v4(Board_v2 board) {
+		// var to hold total score
+		int totalScore = 0;
+		// loop through each space on board
+		for (int row=1; row<11; row++) {
+			for (int col=1; col<11; col++) {
+				// System.out.println("Analysing tile "+row+","+col);
+				// create position of closest queen
+				ArrayList<Integer> closestQueen = null;
+				// create queue 
+				ArrayList<ArrayList<Integer>> queue = new ArrayList<ArrayList<Integer>>();
+				// create array to hold if tiles are already checked
+				boolean[][] checked = new boolean[11][11];
+				// initialize row counter
+				int rowIdx = 0, nodeCount = 0;
+				// create bool for if queen is found -> use to finish row of tree then leave
+				boolean queenFound = false;
+				// add current tile to initialize queue
+				ArrayList<Integer> initialPosition = new ArrayList<Integer>();
+				initialPosition.add(row);
+				initialPosition.add(col);
+				queue.add(initialPosition);
+				// loop through queue (breadth first search) 
+				while (queue.size()>0) {
+					// System.out.println("Queue size is "+queue.size());
+					// remove first node from queue to look at
+					ArrayList<Integer> position = queue.remove(0);
+					// System.out.println("Looking at tile "+position);
+					// check if outofbounds or arrow
+					if (board.getTile(position)==Board_v2.OUTOFBOUNDS || board.getTile(position)==Board_v2.ARROW) {
+						// move to next item in list
+						continue;
+					}
+					// check if queen
+					else if (board.getTile(position)==Board_v2.BLACK || board.getTile(position)==Board_v2.WHITE) {
+						// check if queen already found this row
+						if (queenFound) {
+							// check if queens are different color
+							if (board.getTile(closestQueen)!=board.getTile(position)) {
+								// 2 queens are equally close to tile -> neither is closer
+								closestQueen = null;
+								break;
+							}
+						}
+						// update closestqueen to first found in row
+						closestQueen = position;
+						// mark that queen was found
+						queenFound = true;
+					}
+					// check if already checked
+					else if (checked[position.get(0)][position.get(1)]) {
+						// dont look into
+						continue;
+					}
+					// mark current tile as checked
+					checked[position.get(0)][position.get(1)] = true;
+					// get adjacent tiles to current tile
+					ArrayList<ArrayList<Integer>> adjacentTiles = board.getAdjacentTiles(position);
+					// loop through adjacent tiles
+					for (ArrayList<Integer> adjacentTile : adjacentTiles) {
+						// add all adjacent tiles to queue
+						queue.add(adjacentTile);
+					}
+					// increment tracker vars
+					nodeCount++;
+					// check if entering next row of tree
+					if (nodeCount>=4*((int)Math.pow(rowIdx+1, 2)-(int)Math.pow(rowIdx, 2)-1)) {
+						// check if queen found-> dont start next row
+						if (queenFound) {
+							break;
+						}
+						// reset trackers for next row
+						rowIdx++;
+						nodeCount = 0;
+					}
+				}
+				// determine which color closest queen is and increase/decrease score accordingly
+				if (closestQueen==null) {
+					// neither color queen
+					// System.out.println("Tile "+row+","+col+" is closer to neither queen");
+				}
+				else if (board.getTile(closestQueen)==player) {
+					totalScore++;
+					// System.out.println("Tile "+row+","+col+" is closest to "+board.getPlayerColorString(player));
+				}
+				else if (board.getTile(closestQueen)==opponent) {
+					totalScore--;
+					// System.out.println("Tile "+row+","+col+" is closest to "+board.getPlayerColorString(opponent));
+				}
+				// System.out.println("Total score is now "+totalScore);
+			}
+		}
+		// return total score
+		// System.out.println("Total score found = "+totalScore);
+		return totalScore;
+	}
+	
+	/**
+	 * Start at initial position, get adjacent tiles and to todo list
+	 * loop through todo list adding adjacent tiles to end of list
+	 * before adding to list, check if already checked
+	 * @param position
+	 * @return position of closest queen, or null if equal distance, cut off, or arrow tile
+	 */
+	public ArrayList<Integer> getClosestQueenPosition(Board_v2 board, ArrayList<ArrayList<Integer>> toDo, boolean[][] checked) {
+		// check if passed tile is out of bounds
+		if (board.getTile(toDo.get(0))==Board_v2.OUTOFBOUNDS) {
+			return null;
+		}
+		// check if passed tile is already checked
+		if (checked[toDo.get(0).get(0)][toDo.get(0).get(1)]) {
+			// this branch already done
+			
+		}
+		// check if passed tile is arrow
+		if (board.getTile(toDo.get(0))==Board_v2.ARROW) {
+			return null;
+		}
+		// check if passed tile is a queen
+		if (board.getTile(toDo.get(0))==Board_v2.BLACK || board.getTile(toDo.get(0))==Board_v2.WHITE) {
+			// return this position
+			return toDo.get(0);
+		}
+		// else position is an empty tile -> recurse
+		
+		// get adjacent tiles
+		ArrayList<ArrayList<Integer>> adjacentTiles = board.getAdjacentTiles(toDo.get(0));
+		// add adjacent tiles to toDo list
+		toDo.addAll(adjacentTiles);
+		// loop through toDo list
+		while (toDo.size()>0) {
+			// recurse on
+		}
+		return null; // temp
+	}
 	
 	
 	//-- ISOLATED QUEENS TECHNIQUE METHODS --//

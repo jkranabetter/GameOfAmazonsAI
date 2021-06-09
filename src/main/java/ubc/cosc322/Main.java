@@ -12,12 +12,13 @@ public class Main {
 		
 		// create ai
 		Player aiBlack = new SmartAI(Board_v2.BLACK, board);
-		Player aiWhite = new SmartAI(Board_v2.WHITE, board);
+		Player aiWhite = new Opponent(Board_v2.WHITE, board);
 		
 //		if (aiBlack instanceof SmartAI) {
-//			// System.out.println(((SmartAI) aiBlack).tileOwnershipHeuristic_v3(board));
-//			System.out.println(((SmartAI)aiBlack).regionsHeuristic_v4(board));
-//			System.out.println(board);
+//			((SmartAI) aiBlack).tileOwnershipHeuristic_v4(board);
+//		}
+//		if (aiWhite instanceof SmartAI) {
+//			((SmartAI) aiWhite).tileOwnershipHeuristic_v4(board);
 //			return;
 //		}
 		
