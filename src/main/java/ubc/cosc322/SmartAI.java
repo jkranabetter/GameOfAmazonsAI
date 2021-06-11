@@ -34,7 +34,7 @@ public class SmartAI extends Player {
 		// create base fields
 		super(player,board);
 		// set turn duration
-		this.turnDuration = 28; // gives 2 seconds to get out of multiple layers of loops
+		this.turnDuration = 13; // gives 2 seconds to get out of multiple layers of loops
 		// set search depth
 		this.searchDepth = 1; // depth of 0 and 1 are same, dont set to 0
 		// initialize isolated queens and trapped queens to empty
@@ -69,23 +69,23 @@ public class SmartAI extends Player {
 		int actionsSize = this.getAllActions(player, trueBoard).size();
 		if (actionsSize<10) {
 			System.out.println("Not bothering with iterative search");
-			return this.minimax(trueBoard, 10);
+			return this.minimax(trueBoard, 5);
 		}
 		else if (actionsSize<100) {
 			System.out.println("Initial Search depth set to 5");
-			searchDepth = 5;
+			searchDepth = 3;
 		}
 		else if (actionsSize<500) {
 			System.out.println("Initial Search depth set to 3");
-			searchDepth = 3;
+			searchDepth = 2;
 		}
 		else if (actionsSize>=1000) {
 			System.out.println("Initial Search depth set to 1");
 			searchDepth = 1;
 		}
 		
-//		// for 10 second turns
-//		searchDepth = 1;
+		// for 10 second turns
+		searchDepth = 1;
 		
 		// perform iterative minimax
 		ArrayList<ArrayList<Integer>> action = this.iterativeMinimax(searchDepth, this.trueBoard);
@@ -176,36 +176,15 @@ public class SmartAI extends Player {
 			return score;
 		}
 		
-		// best working version
-		// score = this.totalActionsHeuristic(board);
+		// testing out combo of heuristics with different weights
+		score = (int) ( 0.5 * this.totalActionsHeuristic(board) + 0.5 * this.tileOwnershipHeuristic_v5(board) );
 		
-//		// total actions is roughly 9 times larger than tileOwnership
-//		score = this.totalActionsHeuristic(board) + this.tileOwnershipHeuristic_v4(board);
 		
 		// uncomment one
 		// score = this.totalActionsHeuristic(board);
 		// score = this.regionsHeuristic_v4(board);
-		score = this.tileOwnershipHeuristic_v5(board);
+		// score = this.tileOwnershipHeuristic_v5(board); // best one by itself
 		
-		// old temp form
-//		if (board.turnCount<15) {
-//			score = this.totalActionsHeuristic(board);
-//		}
-//		else {
-//			score = this.regionsHeuristic_v3(board);
-//		}
-		
-		
-		// old temp form
-//		if (totalActionsWeight>0 && tileOwnershipWeight>0) {
-//			score = (int) ( this.totalActionsWeight * this.totalActionsHeuristic(board) + this.tileOwnershipWeight * this.tileOwnershipHeuristic(board) );
-//		}
-//		else if (totalActionsWeight>0) {
-//			score = (int) (this.totalActionsWeight * this.totalActionsHeuristic(board));
-//		}
-//		else if (tileOwnershipWeight>0) {
-//			score = (int) (this.tileOwnershipWeight * this.tileOwnershipHeuristic(board));
-//		}
 		
 		// System.out.println("Gave score of " + score);
 		return score;
@@ -1199,7 +1178,8 @@ public class SmartAI extends Player {
 		// find size of room
 		// int size = this.recurseAdjacentTilesForSize(trueBoard, new boolean[11][11], player, queens.get(0).get(0), queens.get(0).get(1));
 		// perform minimax to size
-		return this.minimax(trueBoard, 1);
+		// return this.minimax(trueBoard, 1);
+		return this.iterativeMinimax(2, trueBoard);
 	}
 	
 	/**
