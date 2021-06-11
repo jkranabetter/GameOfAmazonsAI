@@ -123,6 +123,7 @@ public class COSC322Test extends GamePlayer{
 				// send action to 3 places
 				System.out.println("Sending Black AI initial action");
 				board.applyAction(this.ai.getColorInt(), queenCurrent, queenMoved, arrow);
+				board.outputActionToConsole(queenCurrent, queenMoved, arrow);
 				System.out.println(board);
 				this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
 				this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
@@ -139,15 +140,23 @@ public class COSC322Test extends GamePlayer{
 			
 			// version 2 code
 			
+			// output turn count
+			System.out.println("\nTurn: "+board.turnCount);
+			
 			// read in opponent action to board and gamegui
 			System.out.println("Opponent is " + board.getPlayerColorString((ai.getColorInt()==Board_v2.BLACK)?Board_v2.WHITE:Board_v2.BLACK));
+			
 			System.out.println("Reading in action from opponent");
 			ArrayList<Integer> queenCurrent = (ArrayList<Integer>)( msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR) );
 			ArrayList<Integer> queenMoved = (ArrayList<Integer>)( msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT) );
 			ArrayList<Integer> arrow = (ArrayList<Integer>)( msgDetails.get(AmazonsGameMessage.ARROW_POS) );
-			board.applyAction((this.ai.getColorInt()==Board_v2.BLACK)?Board_v2.WHITE:Board_v2.BLACK, queenCurrent, queenMoved, arrow);
+			
+			// apply opponent action to board
+			board.applyAction(((this.ai.getColorInt()==Board_v2.BLACK)?Board_v2.WHITE:Board_v2.BLACK), queenCurrent, queenMoved, arrow);
+			board.outputActionToConsole(queenCurrent, queenMoved, arrow);
 			System.out.println(board);
 			this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
+			
 			// determine if player has lost
 			if (board.checkLose(this.ai.getColorInt())==false) {
 				// determine action
@@ -160,6 +169,7 @@ public class COSC322Test extends GamePlayer{
 				// send action to 3 places
 				System.out.println("Sending player action");
 				board.applyAction(this.ai.getColorInt(), queenCurrent, queenMoved, arrow);
+				board.outputActionToConsole(queenCurrent, queenMoved, arrow);
 				System.out.println(board);
 				this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
 				this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);

@@ -63,48 +63,29 @@ public class SmartAI extends Player {
 		}
 		//-- UNCOMMENT ABOVE WHEN QUEEN ISOLATION TECHNIQUE COMPLETELY IMPLEMENTED --//
 		
-//		// update heuristic weights for scoreBoard() method -> temporary form currently
-//		if (trueBoard.turnCount<25) {
-//			System.out.println("Phase 1");
-//			totalActionsWeight = 1;
-//			tileOwnershipWeight = 0;
-//		}
-//		else if (trueBoard.turnCount<50) {
-//			System.out.println("Phase 2");
-//			totalActionsWeight = 0.5;
-//			tileOwnershipWeight = 0.5;
-//		}
-//		else if (trueBoard.turnCount>=50) {
-//			System.out.println("Phase 3");
-//			totalActionsWeight = 0;
-//			tileOwnershipWeight = 1;
-//		}
+
 		
+		// determine initial search depth (numbers based on 30 second turns
 		int actionsSize = this.getAllActions(player, trueBoard).size();
 		if (actionsSize<10) {
 			System.out.println("Not bothering with iterative search");
 			return this.minimax(trueBoard, 10);
 		}
-		else if (actionsSize<30) {
+		else if (actionsSize<100) {
 			System.out.println("Initial Search depth set to 5");
 			searchDepth = 5;
 		}
-		else if (actionsSize<100) {
-			System.out.println("Initial Search depth set to 4");
-			searchDepth = 4;
-		}
-		else if (actionsSize<300) {
+		else if (actionsSize<500) {
 			System.out.println("Initial Search depth set to 3");
 			searchDepth = 3;
 		}
-		else if (actionsSize<900) {
-			System.out.println("Initial Search depth set to 2");
-			searchDepth = 2;
-		}
-		else if (actionsSize>=900) {
+		else if (actionsSize>=1000) {
 			System.out.println("Initial Search depth set to 1");
 			searchDepth = 1;
 		}
+		
+//		// for 10 second turns
+//		searchDepth = 1;
 		
 		// perform iterative minimax
 		ArrayList<ArrayList<Integer>> action = this.iterativeMinimax(searchDepth, this.trueBoard);
@@ -196,15 +177,15 @@ public class SmartAI extends Player {
 		}
 		
 		// best working version
-		score = this.totalActionsHeuristic(board);
+		// score = this.totalActionsHeuristic(board);
 		
 //		// total actions is roughly 9 times larger than tileOwnership
 //		score = this.totalActionsHeuristic(board) + this.tileOwnershipHeuristic_v4(board);
 		
 		// uncomment one
 		// score = this.totalActionsHeuristic(board);
-		// score = this.tileOwnershipHeuristic_v4(board);
 		// score = this.regionsHeuristic_v4(board);
+		score = this.tileOwnershipHeuristic_v5(board);
 		
 		// old temp form
 //		if (board.turnCount<15) {
@@ -454,323 +435,133 @@ public class SmartAI extends Player {
 	}
 	
 	/**
-	 * Heuristic that compares number of tiles with closer player queens to tiles with closer opponent queen
-	 * loses to totalActionsHeuristic() 
-	 * is very slow and inefficient
-	 * doesnt have to loop through each tile every time
-	 * only first time, then can run recursive function at queenCurrent, queenMoved, and adjacent to arrow
-	 * will have to run with opponent action too though
+	 * Rank board state by number of tiles that player has easier access to versus the opponent
+	 * tiles equally easily accessible are neutral tiles and do not contribute to overall score
+	 * Loop through each empty tile on board
+	 * Starting with current empty tile, loop through reachable tiles adding to queue until queen is found
+	 * At the start of each row of tree, add 3 element to initial position to know when to start next row
+	 * when queen found, finish row to make sure opponent queen is not also justas close (ie neutral tile)
 	 * @param board
 	 * @return
 	 */
-	public int tileOwnershipHeuristic(Board_v2 board) {
-		// create score holder
-		int score = 0; // increase for close player, decrease for close opponent
-		// loop through board
+	public int tileOwnershipHeuristic_v5(Board_v2 board) {
+		// create score to return
+		int score = 0;
+		// loop through each tile on board
 		for (int row=1; row<11; row++) {
-			// check if end of turn yet
-			if (this.checkEndTurn()) { break; }
 			for (int col=1; col<11; col++) {
-				// check if end of turn yet
-				if (this.checkEndTurn()) { break; }
-				// check if empty playable tile
-				if (board.getTile(row, col)==Board_v2.EMPTY) {
-					// define tile position
-					ArrayList<Integer> position = new ArrayList<Integer>();
-					position.add(row);
-					position.add(col);
-					// use recursive function to find depth of closest queen
-					int depth = this.tileOwnershipHeuristicRecurse(board,position,new boolean[11][11],1);
-					// check if player or opponent queen
-					if (depth>0) {
-						// increment score if current tile is closer to player queen
-						score += 1;
+				// check if tile is empty
+				if (board.getTile(row,col)==Board_v2.EMPTY) {
+					// System.out.println("Tile "+row+","+col+" is being looked at");
+					// create booleans to hold whether player and opponent queens have been found
+					boolean playerFound = false, opponentFound = false;
+					// create array to hold if tiles are already in queue/analysed
+					boolean[][] queued = new boolean[11][11];
+					// create queue of positions
+					ArrayList<ArrayList<Integer>> queue = new ArrayList<ArrayList<Integer>>();
+					// convert current position to list format
+					ArrayList<Integer> start = new ArrayList<Integer>();
+					start.add(row);
+					start.add(col);
+					// initialize queue with current position
+					queue.add(start);
+					// mark first position as first in a row by adding 1 to end of position coords
+					queue.get(0).add(1);
+					// loop through queue until empty or broken out of by having found queen(s)
+					while (queue.size()>0) {
+						// dequeue first element
+						ArrayList<Integer> position = queue.remove(0);
+						// check if element is first in row of tree
+						boolean firstElement = false;
+						if (position.size()>=3) {
+							// System.out.println("Found first element in row of tree");
+							// change firtElement to true
+							firstElement = true;
+							// check if queen found in previous row of tree
+							if (playerFound || opponentFound) {
+								// System.out.println("Queen found in previous row of tree");
+								// exit tree before beginning new row
+								break;
+							}
+						}
+						// check if dequeued is queen
+						if (board.getTile(position)==Board_v2.BLACK || board.getTile(position)==Board_v2.WHITE) {
+							// check if player queen found
+							if (board.getTile(position)==player) {
+								// System.out.println("Player queen found");
+								// player queen found
+								playerFound = true;
+							}
+							// check if opponent queen found
+							else if (board.getTile(position)==opponent) {
+								// System.out.println("Opponent queen found");
+								// opponent queen found
+								opponentFound = true;
+							}
+							// check if both teams have equally close queen
+							if (playerFound && opponentFound) {
+								// tile is neutral, can break out ofqueue loop
+								break;
+							}
+						}
+						// get reachable tiles by current, including any queens
+						ArrayList<ArrayList<Integer>> reachableTiles = this.getDirectEmptyAndQueenTiles(board, position);
+						// System.out.println(reachableTiles.size()+" reachable tiles to "+position);
+						// loop through list of reachable tiles
+						for (ArrayList<Integer> reachableTile : reachableTiles) {
+							// check if tile has already been added to queue before
+							if (queued[reachableTile.get(0)][reachableTile.get(1)]) {
+								// dont add to queue again
+								continue;
+							}
+							// check if this tile is first to be added from first element in row
+							if (firstElement) {
+								// mark as first element in row before adding
+								reachableTile.add(1);
+								// uncheck first element
+								firstElement = false;
+							}
+							// add new tile to queue to look at later
+							queue.add(reachableTile);
+							// mark tile as queued
+							queued[reachableTile.get(0)][reachableTile.get(1)] = true;
+						}
 					}
-					else if (depth<0) {
-						// decrement score if current tile is closer to opponent queen
-						score -= 1;
+					// determine tile effect on score based on playerFound and opponentFound values
+					if (playerFound && opponentFound) {
+						// neutral tile, both colors equal distance away
+						// System.out.println("Tile "+row+","+col+" is neutral");
+					}
+					else if (playerFound) {
+						// player tile, player queen closer
+						// System.out.println("Tile "+row+","+col+" belongs to "+player);
+						score++;
+					}
+					else if (opponentFound) {
+						// opponent tile, opponent queen closer
+						// System.out.println("Tile "+row+","+col+" belongs to "+opponent);
+						score--;
+					}
+					else {
+						// neutral tile, neither queen can access tile
+						// System.out.println("Tile "+row+","+col+" is cut off from all queens");
 					}
 				}
 			}
 		}
-		// return determined score
+		
+		// System.out.println("Total Score = "+score);
 		return score;
 	}
 	
 	/**
-	 * Use with above heuristic
+	 * Get list of tiles directly reachable by passed position
+	 * Include all empty tiles, as well as queens that block path 
 	 * @param board
 	 * @param position
-	 * @param checkedTiles boolean array holding if tiles have been recursed into already
-	 * @param currentDepth absolute depth of heuristic search
-	 * @return depth of closest queen, positive if player queen, negative if opponent queen, 0 if both equal
+	 * @return list of accessible positions
 	 */
-	public int tileOwnershipHeuristicRecurse(Board_v2 board, 
-												ArrayList<Integer> position, 
-												boolean[][] checkedTiles,
-												int currentDepth) {
-		// add current tile to checkedTiles
-		checkedTiles[position.get(0)][position.get(1)] = true;
-		// create boolean variables to hold whether queens were seen
-		boolean playerQueen = false, opponentQueen = false;
-		// create list to store empty tiles
-		ArrayList<ArrayList<Integer>> directTiles = new ArrayList<ArrayList<Integer>>();
-		
-		// loop through directly reachable empty tiles along straight lines looking for queens
-		for (int count=0, dx=1, dy=1, row=position.get(0)+dy, col=position.get(1)+dx; count<8; row+=dy, col+=dx) {
-			// check if end of turn yet
-			if (this.checkEndTurn()) { break; }
-			// check if empty tile
-			if (board.getTile(row,col)==Board_v2.EMPTY) {
-				// add tile to list
-				ArrayList<Integer> newTile = new ArrayList<Integer>();
-				newTile.add(row);
-				newTile.add(col); 
-				directTiles.add(newTile); 
-				// continue to next tile in line
-				continue;
-			}
-			// check if player queen tile
-			else if (board.getTile(row,col)==player) {
-				playerQueen = true;
-			}
-			// check if opponent queen tile
-			else if (board.getTile(row,col)==opponent) {
-				opponentQueen = true;
-			}
-			// define new line -> updated order of lines, doing diagonals first
-			switch (count++) {
-			case 0: dx=-1; dy=1; break;
-			case 1: dx=-1; dy=-1; break;
-			case 2: dx=1; dy=-1; break;
-			case 3: dx=1; dy=0; break;
-			case 4: dx=0; dy=1; break;
-			case 5: dx=-1; dy=0; break;
-			case 6: dx=0; dy=-1; break;
-			case 7: dx=1; dy=1; break;
-			}
-			// reset to start of line
-			row = position.get(0);
-			col = position.get(1);
-		}
-		
-		// determine tile ownership without recursion
-		if (playerQueen==true && opponentQueen==true) {
-			// neutral tile
-			return 0;
-		}
-		else if (playerQueen==true) {
-			// player tile
-			return currentDepth;
-		}
-		else if (playerQueen==false) {
-			// opponent tile
-			return -currentDepth;
-		}
-		
-		// define list to hold recursive scores
-		ArrayList<Integer> queenDistances = new ArrayList<Integer>();
-		// loop through direct tiles to recurse into
-		for (int i=0; i<directTiles.size(); i++) {
-			// check if end of turn yet
-			if (this.checkEndTurn()) { break; }
-			// check if already been checked
-			if (checkedTiles[directTiles.get(i).get(0)][directTiles.get(i).get(1)]) {
-				// already recursed into tile, dont repeat
-				continue;
-			}
-			// recurse into tile to get depth of closest queen and add to list
-			queenDistances.add( this.tileOwnershipHeuristicRecurse(board, directTiles.get(i), checkedTiles, ++currentDepth) );
-			
-		}
-		
-		// finding minimum variables
-		int smallestDepth = Integer.MAX_VALUE; // hold depth of closest queen
-		boolean smallestDepthTie = false; // is true when player and opponent queen equally close
-		// loop through scores to determine closest queen
-		for (int i=0; i<queenDistances.size(); i++) {
-			// check if current is strictly closer
-			if (Math.abs(queenDistances.get(i)) < Math.abs(smallestDepth)) {
-				smallestDepth = queenDistances.get(i);
-				smallestDepthTie = false;
-			}
-			// check if current is equally close but of opposite color
-			else if (Math.abs(queenDistances.get(i)) == Math.abs(smallestDepth) && queenDistances.get(i)-smallestDepth==0) {
-				smallestDepth = Math.abs(queenDistances.get(i));
-				smallestDepthTie = true;
-			}
-		}
-		
-		// check if 2 queens equally close
-		if (smallestDepthTie==true) {
-			return 0; // neutral tile
-		}
-		// return closest queen value including pos and neg
-		return smallestDepth;
-	}
-	
-	/**
-	 * NOT IN USE but has better structure than previous version which is slow -> complete recursive function at some point
-	 * @param board
-	 * @return
-	 */
-	public int tileOwnershipHeuristic_v2(Board_v2 board) {
-		// create array to hold which tiles belong to which player
-		int[][] tiles = new int[11][11];
-		// create holder of total board score
-		int score = 0;
-		// loop through tiles whos ownership have not yet been found
-		for (int row=1; row<11; row++) {
-			// check if end of turn yet
-			if (this.checkEndTurn()) { break; }
-			for (int col=1; col<11; col++) {
-				// check if end of turn yet
-				if (this.checkEndTurn()) { break; }
-				// check if tile ownership potentially not found (0 is default but also neutral tile)
-				if (tiles[row][col]==0) {
-					// get ownership of tile by recursing into it
-					ArrayList<Integer> position = new ArrayList<Integer>();
-					position.add(row);
-					position.add(col);
-					tiles[row][col] = this.tileOwnershipHeuristicRecurse_v2(tiles, board, position, 1);
-				}
-				// increment or decrement total score of board
-				if (tiles[row][col]>0) {
-					score++;
-				}
-				else if (tiles[row][col]<0) {
-					score--;
-				}
-			}
-		}
-		// return total board score
-		return score;
-	}
-	
-	/**
-	 * get ownership of passed tile and recurse into reachable tiles getting their closests
-	 * NOT COMPLETED
-	 * @param tiles 2d array to place ownership value into for each tile
-	 * @param board
-	 * @param position
-	 * @param depth current depth may not be needed if gonna count upwards from back
-	 * @return distance to closest queen, positive if player's, negative if opponents, 0 if neutral
-	 */
-	public int tileOwnershipHeuristicRecurse_v2(int[][] tiles, Board_v2 board, ArrayList<Integer> position, int depth) {
-		// loop through reachable tiles looking for queens reachable in one turn
-		// determine if queen(s) is(are) reachable and return +1, -1, or 0
-		// get closest queens to each of the reachable tiles
-		// determine closest queen to this tile and return it
-		
-		return 0; // temp
-	}
-	
-	public int tileOwnershipHeuristic_v3(Board_v2 board) {
-		// make var to hold score
-		int score = 0;
-//		// make array to hold checked tiles -> not using at this point
-//		boolean[][] checked = new boolean[11][11];
-		// loop through tiles
-		for (int row=1; row<11; row++) {
-			for (int col=1; col<11; col++) {
-//				// check if already checked
-//				if (checked[row][col]) {
-//					// skip since already done
-//					continue;
-//				}
-				// find closest queen to position, add to score if player, take if opponent
-				ArrayList<Integer> position = new ArrayList<Integer>();
-				position.add(row);
-				position.add(col);
-				int closestQueen = this.getClosestQueen(board, position, new boolean[11][11], new int[11][11], 1);
-				if (closestQueen>0) { 
-					score += 1; 
-				}
-				else if (closestQueen<0) {
-					score -= 1;
-				}
-				System.out.println("Tile "+row+","+col+"'s score is "+closestQueen+" and board score is "+score);
-			}
-		}
-		// return total found score
-		return score; 
-	}
-	
-	/**
-	 * get depth of closest queen, positive if player, negative if opponent
-	 * used inside tileOwnershipHeuristic_v3()
-	 * @param board
-	 * @param row
-	 * @param col
-	 * @param checked
-	 * @return positive depth if player closer, negative if opponent closer, 0 if neither closer
-	 */
-	public int getClosestQueen(Board_v2 board, ArrayList<Integer> position, boolean[][] checked, int[][] checkedDepth, int depth) {
-		// check if already checked
-//		if (checked[position.get(0)][position.get(1)]) {
-//			System.out.println("Already recursed into this tile");
-//			return 0;
-//		}
-		// add current tile to checked array
-		checked[position.get(0)][position.get(1)] = true;
-		checkedDepth[position.get(0)][position.get(1)] = depth;
-		// check if current tile is terminal node
-		if (board.getTile(position)==player) {
-			System.out.println("Found player and returning "+depth);
-			return depth;
-		}
-		else if (board.getTile(position)==opponent) {
-			System.out.println("Found opponent and returning "+(-depth));
-			return -depth;
-		}
-		else if (board.getTile(position)==Board_v2.ARROW) {
-			return 0;
-		}
-		// get directly reachable tiles including queens
-		ArrayList<ArrayList<Integer>> directTiles = this.getDirectTiles(board, position);
-		// System.out.println("Size of direct tiles is "+directTiles.size());
-		// initialize closest players and opponents to furthest away possible
-		int closestPlayer = Integer.MAX_VALUE, closestOpponent = Integer.MIN_VALUE;
-		// loop through directly reachable tiles from current position
-		for (ArrayList<Integer> tile : directTiles) {
-			// check if already checked tile at shorter depth
-			if (checked[tile.get(0)][tile.get(1)]==true) {
-				// skip recursing into this tile
-				continue;
-			}
-			// recurse into this tile
-			int score = this.getClosestQueen(board, tile, checked, checkedDepth, depth+1);
-			// check if new closest player queen
-			if (score>0 && score<closestPlayer) {
-				// System.out.println("Player score updating to "+score);
-				closestPlayer = score;
-			}
-			// check if new closest opponent
-			else if (score<0 && score>closestOpponent) {
-				// System.out.println("Opponent score updating to "+score);
-				closestOpponent = score;
-			}
-		}
-		// compare closest player and opponent
-		if (closestPlayer==Integer.MAX_VALUE && closestOpponent==Integer.MIN_VALUE) {
-			// no players found
-			return 0;
-		}
-		else if (closestPlayer!=Integer.MAX_VALUE && Math.abs(closestPlayer)<Math.abs(closestOpponent)) {
-			// player closer
-			return closestPlayer;
-		}
-		else if (closestOpponent!=Integer.MIN_VALUE && Math.abs(closestOpponent)<Math.abs(closestPlayer)) {
-			// opponent closer
-			return closestOpponent;
-		}
-		else {
-			// both are equal distance
-			return 0;
-		}
-	}
-	
-	public ArrayList<ArrayList<Integer>> getDirectTiles(Board_v2 board, ArrayList<Integer> position) {
+	public ArrayList<ArrayList<Integer>> getDirectEmptyAndQueenTiles(Board_v2 board, ArrayList<Integer> position) {
 		// create list to store empty tiles
 		ArrayList<ArrayList<Integer>> directTiles = new ArrayList<ArrayList<Integer>>();
 		// loop through directly reachable empty tiles along straight lines
@@ -785,13 +576,14 @@ public class SmartAI extends Player {
 				// continue to next tile in line
 				continue;
 			}
-			// check if queen before moving to next line
-			if (board.getTile(row,col)!=Board_v2.OUTOFBOUNDS && board.getTile(row,col)!=Board_v2.ARROW) {
-				// add tile to list
+			// check if found queen
+			if (board.getTile(row,col)==Board_v2.BLACK || board.getTile(row,col)==Board_v2.WHITE) {
+				// add queen to list before starting new line
 				ArrayList<Integer> newTile = new ArrayList<Integer>();
 				newTile.add(row);
 				newTile.add(col); 
-				directTiles.add(newTile);
+				directTiles.add(newTile); 
+				// System.out.println("Queen at "+newTile+" added to reachable tiles");
 			}
 			// define new line -> updated order of lines, doing diagonals first
 			switch (count++) {
@@ -812,151 +604,473 @@ public class SmartAI extends Player {
 		return directTiles;
 	}
 	
-	/**
-	 * Final attempt before mock tournament
-	 * Use adjacent tiles method to closest queen
-	 * Loop through rows of tree until queen found
-	 * finish row to check if there are other queens at same depth
-	 * 
-	 * currently is just adding score for first queen found, so if 2 queens are equal distances away then 
-	 * @param board
-	 * @return
-	 */
-	public int tileOwnershipHeuristic_v4(Board_v2 board) {
-		// var to hold total score
-		int totalScore = 0;
-		// loop through each space on board
-		for (int row=1; row<11; row++) {
-			for (int col=1; col<11; col++) {
-				// System.out.println("Analysing tile "+row+","+col);
-				// create position of closest queen
-				ArrayList<Integer> closestQueen = null;
-				// create queue 
-				ArrayList<ArrayList<Integer>> queue = new ArrayList<ArrayList<Integer>>();
-				// create array to hold if tiles are already checked
-				boolean[][] checked = new boolean[11][11];
-				// initialize row counter
-				int rowIdx = 0, nodeCount = 0;
-				// create bool for if queen is found -> use to finish row of tree then leave
-				boolean queenFound = false;
-				// add current tile to initialize queue
-				ArrayList<Integer> initialPosition = new ArrayList<Integer>();
-				initialPosition.add(row);
-				initialPosition.add(col);
-				queue.add(initialPosition);
-				// loop through queue (breadth first search) 
-				while (queue.size()>0) {
-					// System.out.println("Queue size is "+queue.size());
-					// remove first node from queue to look at
-					ArrayList<Integer> position = queue.remove(0);
-					// System.out.println("Looking at tile "+position);
-					// check if outofbounds or arrow
-					if (board.getTile(position)==Board_v2.OUTOFBOUNDS || board.getTile(position)==Board_v2.ARROW) {
-						// move to next item in list
-						continue;
-					}
-					// check if queen
-					else if (board.getTile(position)==Board_v2.BLACK || board.getTile(position)==Board_v2.WHITE) {
-						// check if queen already found this row
-						if (queenFound) {
-							// check if queens are different color
-							if (board.getTile(closestQueen)!=board.getTile(position)) {
-								// 2 queens are equally close to tile -> neither is closer
-								closestQueen = null;
-								break;
-							}
-						}
-						// update closestqueen to first found in row
-						closestQueen = position;
-						// mark that queen was found
-						queenFound = true;
-					}
-					// check if already checked
-					else if (checked[position.get(0)][position.get(1)]) {
-						// dont look into
-						continue;
-					}
-					// mark current tile as checked
-					checked[position.get(0)][position.get(1)] = true;
-					// get adjacent tiles to current tile
-					ArrayList<ArrayList<Integer>> adjacentTiles = board.getAdjacentTiles(position);
-					// loop through adjacent tiles
-					for (ArrayList<Integer> adjacentTile : adjacentTiles) {
-						// add all adjacent tiles to queue
-						queue.add(adjacentTile);
-					}
-					// increment tracker vars
-					nodeCount++;
-					// check if entering next row of tree
-					if (nodeCount>=4*((int)Math.pow(rowIdx+1, 2)-(int)Math.pow(rowIdx, 2)-1)) {
-						// check if queen found-> dont start next row
-						if (queenFound) {
-							break;
-						}
-						// reset trackers for next row
-						rowIdx++;
-						nodeCount = 0;
-					}
-				}
-				// determine which color closest queen is and increase/decrease score accordingly
-				if (closestQueen==null) {
-					// neither color queen
-					// System.out.println("Tile "+row+","+col+" is closer to neither queen");
-				}
-				else if (board.getTile(closestQueen)==player) {
-					totalScore++;
-					// System.out.println("Tile "+row+","+col+" is closest to "+board.getPlayerColorString(player));
-				}
-				else if (board.getTile(closestQueen)==opponent) {
-					totalScore--;
-					// System.out.println("Tile "+row+","+col+" is closest to "+board.getPlayerColorString(opponent));
-				}
-				// System.out.println("Total score is now "+totalScore);
-			}
-		}
-		// return total score
-		// System.out.println("Total score found = "+totalScore);
-		return totalScore;
-	}
-	
-	/**
-	 * Start at initial position, get adjacent tiles and to todo list
-	 * loop through todo list adding adjacent tiles to end of list
-	 * before adding to list, check if already checked
-	 * @param position
-	 * @return position of closest queen, or null if equal distance, cut off, or arrow tile
-	 */
-	public ArrayList<Integer> getClosestQueenPosition(Board_v2 board, ArrayList<ArrayList<Integer>> toDo, boolean[][] checked) {
-		// check if passed tile is out of bounds
-		if (board.getTile(toDo.get(0))==Board_v2.OUTOFBOUNDS) {
-			return null;
-		}
-		// check if passed tile is already checked
-		if (checked[toDo.get(0).get(0)][toDo.get(0).get(1)]) {
-			// this branch already done
-			
-		}
-		// check if passed tile is arrow
-		if (board.getTile(toDo.get(0))==Board_v2.ARROW) {
-			return null;
-		}
-		// check if passed tile is a queen
-		if (board.getTile(toDo.get(0))==Board_v2.BLACK || board.getTile(toDo.get(0))==Board_v2.WHITE) {
-			// return this position
-			return toDo.get(0);
-		}
-		// else position is an empty tile -> recurse
-		
-		// get adjacent tiles
-		ArrayList<ArrayList<Integer>> adjacentTiles = board.getAdjacentTiles(toDo.get(0));
-		// add adjacent tiles to toDo list
-		toDo.addAll(adjacentTiles);
-		// loop through toDo list
-		while (toDo.size()>0) {
-			// recurse on
-		}
-		return null; // temp
-	}
+//	/**
+//	 * Heuristic that compares number of tiles with closer player queens to tiles with closer opponent queen
+//	 * loses to totalActionsHeuristic() 
+//	 * is very slow and inefficient
+//	 * doesnt have to loop through each tile every time
+//	 * only first time, then can run recursive function at queenCurrent, queenMoved, and adjacent to arrow
+//	 * will have to run with opponent action too though
+//	 * @param board
+//	 * @return
+//	 */
+//	public int tileOwnershipHeuristic(Board_v2 board) {
+//		// create score holder
+//		int score = 0; // increase for close player, decrease for close opponent
+//		// loop through board
+//		for (int row=1; row<11; row++) {
+//			// check if end of turn yet
+//			if (this.checkEndTurn()) { break; }
+//			for (int col=1; col<11; col++) {
+//				// check if end of turn yet
+//				if (this.checkEndTurn()) { break; }
+//				// check if empty playable tile
+//				if (board.getTile(row, col)==Board_v2.EMPTY) {
+//					// define tile position
+//					ArrayList<Integer> position = new ArrayList<Integer>();
+//					position.add(row);
+//					position.add(col);
+//					// use recursive function to find depth of closest queen
+//					int depth = this.tileOwnershipHeuristicRecurse(board,position,new boolean[11][11],1);
+//					// check if player or opponent queen
+//					if (depth>0) {
+//						// increment score if current tile is closer to player queen
+//						score += 1;
+//					}
+//					else if (depth<0) {
+//						// decrement score if current tile is closer to opponent queen
+//						score -= 1;
+//					}
+//				}
+//			}
+//		}
+//		// return determined score
+//		return score;
+//	}
+//	
+//	/**
+//	 * Use with above heuristic
+//	 * @param board
+//	 * @param position
+//	 * @param checkedTiles boolean array holding if tiles have been recursed into already
+//	 * @param currentDepth absolute depth of heuristic search
+//	 * @return depth of closest queen, positive if player queen, negative if opponent queen, 0 if both equal
+//	 */
+//	public int tileOwnershipHeuristicRecurse(Board_v2 board, 
+//												ArrayList<Integer> position, 
+//												boolean[][] checkedTiles,
+//												int currentDepth) {
+//		// add current tile to checkedTiles
+//		checkedTiles[position.get(0)][position.get(1)] = true;
+//		// create boolean variables to hold whether queens were seen
+//		boolean playerQueen = false, opponentQueen = false;
+//		// create list to store empty tiles
+//		ArrayList<ArrayList<Integer>> directTiles = new ArrayList<ArrayList<Integer>>();
+//		
+//		// loop through directly reachable empty tiles along straight lines looking for queens
+//		for (int count=0, dx=1, dy=1, row=position.get(0)+dy, col=position.get(1)+dx; count<8; row+=dy, col+=dx) {
+//			// check if end of turn yet
+//			if (this.checkEndTurn()) { break; }
+//			// check if empty tile
+//			if (board.getTile(row,col)==Board_v2.EMPTY) {
+//				// add tile to list
+//				ArrayList<Integer> newTile = new ArrayList<Integer>();
+//				newTile.add(row);
+//				newTile.add(col); 
+//				directTiles.add(newTile); 
+//				// continue to next tile in line
+//				continue;
+//			}
+//			// check if player queen tile
+//			else if (board.getTile(row,col)==player) {
+//				playerQueen = true;
+//			}
+//			// check if opponent queen tile
+//			else if (board.getTile(row,col)==opponent) {
+//				opponentQueen = true;
+//			}
+//			// define new line -> updated order of lines, doing diagonals first
+//			switch (count++) {
+//			case 0: dx=-1; dy=1; break;
+//			case 1: dx=-1; dy=-1; break;
+//			case 2: dx=1; dy=-1; break;
+//			case 3: dx=1; dy=0; break;
+//			case 4: dx=0; dy=1; break;
+//			case 5: dx=-1; dy=0; break;
+//			case 6: dx=0; dy=-1; break;
+//			case 7: dx=1; dy=1; break;
+//			}
+//			// reset to start of line
+//			row = position.get(0);
+//			col = position.get(1);
+//		}
+//		
+//		// determine tile ownership without recursion
+//		if (playerQueen==true && opponentQueen==true) {
+//			// neutral tile
+//			return 0;
+//		}
+//		else if (playerQueen==true) {
+//			// player tile
+//			return currentDepth;
+//		}
+//		else if (playerQueen==false) {
+//			// opponent tile
+//			return -currentDepth;
+//		}
+//		
+//		// define list to hold recursive scores
+//		ArrayList<Integer> queenDistances = new ArrayList<Integer>();
+//		// loop through direct tiles to recurse into
+//		for (int i=0; i<directTiles.size(); i++) {
+//			// check if end of turn yet
+//			if (this.checkEndTurn()) { break; }
+//			// check if already been checked
+//			if (checkedTiles[directTiles.get(i).get(0)][directTiles.get(i).get(1)]) {
+//				// already recursed into tile, dont repeat
+//				continue;
+//			}
+//			// recurse into tile to get depth of closest queen and add to list
+//			queenDistances.add( this.tileOwnershipHeuristicRecurse(board, directTiles.get(i), checkedTiles, ++currentDepth) );
+//			
+//		}
+//		
+//		// finding minimum variables
+//		int smallestDepth = Integer.MAX_VALUE; // hold depth of closest queen
+//		boolean smallestDepthTie = false; // is true when player and opponent queen equally close
+//		// loop through scores to determine closest queen
+//		for (int i=0; i<queenDistances.size(); i++) {
+//			// check if current is strictly closer
+//			if (Math.abs(queenDistances.get(i)) < Math.abs(smallestDepth)) {
+//				smallestDepth = queenDistances.get(i);
+//				smallestDepthTie = false;
+//			}
+//			// check if current is equally close but of opposite color
+//			else if (Math.abs(queenDistances.get(i)) == Math.abs(smallestDepth) && queenDistances.get(i)-smallestDepth==0) {
+//				smallestDepth = Math.abs(queenDistances.get(i));
+//				smallestDepthTie = true;
+//			}
+//		}
+//		
+//		// check if 2 queens equally close
+//		if (smallestDepthTie==true) {
+//			return 0; // neutral tile
+//		}
+//		// return closest queen value including pos and neg
+//		return smallestDepth;
+//	}
+//	
+//	/**
+//	 * NOT IN USE but has better structure than previous version which is slow -> complete recursive function at some point
+//	 * @param board
+//	 * @return
+//	 */
+//	public int tileOwnershipHeuristic_v2(Board_v2 board) {
+//		// create array to hold which tiles belong to which player
+//		int[][] tiles = new int[11][11];
+//		// create holder of total board score
+//		int score = 0;
+//		// loop through tiles whos ownership have not yet been found
+//		for (int row=1; row<11; row++) {
+//			// check if end of turn yet
+//			if (this.checkEndTurn()) { break; }
+//			for (int col=1; col<11; col++) {
+//				// check if end of turn yet
+//				if (this.checkEndTurn()) { break; }
+//				// check if tile ownership potentially not found (0 is default but also neutral tile)
+//				if (tiles[row][col]==0) {
+//					// get ownership of tile by recursing into it
+//					ArrayList<Integer> position = new ArrayList<Integer>();
+//					position.add(row);
+//					position.add(col);
+//					tiles[row][col] = this.tileOwnershipHeuristicRecurse_v2(tiles, board, position, 1);
+//				}
+//				// increment or decrement total score of board
+//				if (tiles[row][col]>0) {
+//					score++;
+//				}
+//				else if (tiles[row][col]<0) {
+//					score--;
+//				}
+//			}
+//		}
+//		// return total board score
+//		return score;
+//	}
+//	
+//	/**
+//	 * get ownership of passed tile and recurse into reachable tiles getting their closests
+//	 * NOT COMPLETED
+//	 * @param tiles 2d array to place ownership value into for each tile
+//	 * @param board
+//	 * @param position
+//	 * @param depth current depth may not be needed if gonna count upwards from back
+//	 * @return distance to closest queen, positive if player's, negative if opponents, 0 if neutral
+//	 */
+//	public int tileOwnershipHeuristicRecurse_v2(int[][] tiles, Board_v2 board, ArrayList<Integer> position, int depth) {
+//		// loop through reachable tiles looking for queens reachable in one turn
+//		// determine if queen(s) is(are) reachable and return +1, -1, or 0
+//		// get closest queens to each of the reachable tiles
+//		// determine closest queen to this tile and return it
+//		
+//		return 0; // temp
+//	}
+//	
+//	public int tileOwnershipHeuristic_v3(Board_v2 board) {
+//		// make var to hold score
+//		int score = 0;
+////		// make array to hold checked tiles -> not using at this point
+////		boolean[][] checked = new boolean[11][11];
+//		// loop through tiles
+//		for (int row=1; row<11; row++) {
+//			for (int col=1; col<11; col++) {
+////				// check if already checked
+////				if (checked[row][col]) {
+////					// skip since already done
+////					continue;
+////				}
+//				// find closest queen to position, add to score if player, take if opponent
+//				ArrayList<Integer> position = new ArrayList<Integer>();
+//				position.add(row);
+//				position.add(col);
+//				int closestQueen = this.getClosestQueen(board, position, new boolean[11][11], new int[11][11], 1);
+//				if (closestQueen>0) { 
+//					score += 1; 
+//				}
+//				else if (closestQueen<0) {
+//					score -= 1;
+//				}
+//				System.out.println("Tile "+row+","+col+"'s score is "+closestQueen+" and board score is "+score);
+//			}
+//		}
+//		// return total found score
+//		return score; 
+//	}
+//	
+//	/**
+//	 * get depth of closest queen, positive if player, negative if opponent
+//	 * used inside tileOwnershipHeuristic_v3()
+//	 * @param board
+//	 * @param row
+//	 * @param col
+//	 * @param checked
+//	 * @return positive depth if player closer, negative if opponent closer, 0 if neither closer
+//	 */
+//	public int getClosestQueen(Board_v2 board, ArrayList<Integer> position, boolean[][] checked, int[][] checkedDepth, int depth) {
+//		// check if already checked
+////		if (checked[position.get(0)][position.get(1)]) {
+////			System.out.println("Already recursed into this tile");
+////			return 0;
+////		}
+//		// add current tile to checked array
+//		checked[position.get(0)][position.get(1)] = true;
+//		checkedDepth[position.get(0)][position.get(1)] = depth;
+//		// check if current tile is terminal node
+//		if (board.getTile(position)==player) {
+//			System.out.println("Found player and returning "+depth);
+//			return depth;
+//		}
+//		else if (board.getTile(position)==opponent) {
+//			System.out.println("Found opponent and returning "+(-depth));
+//			return -depth;
+//		}
+//		else if (board.getTile(position)==Board_v2.ARROW) {
+//			return 0;
+//		}
+//		// get directly reachable tiles including queens
+//		ArrayList<ArrayList<Integer>> directTiles = this.getDirectTiles(board, position);
+//		// System.out.println("Size of direct tiles is "+directTiles.size());
+//		// initialize closest players and opponents to furthest away possible
+//		int closestPlayer = Integer.MAX_VALUE, closestOpponent = Integer.MIN_VALUE;
+//		// loop through directly reachable tiles from current position
+//		for (ArrayList<Integer> tile : directTiles) {
+//			// check if already checked tile at shorter depth
+//			if (checked[tile.get(0)][tile.get(1)]==true) {
+//				// skip recursing into this tile
+//				continue;
+//			}
+//			// recurse into this tile
+//			int score = this.getClosestQueen(board, tile, checked, checkedDepth, depth+1);
+//			// check if new closest player queen
+//			if (score>0 && score<closestPlayer) {
+//				// System.out.println("Player score updating to "+score);
+//				closestPlayer = score;
+//			}
+//			// check if new closest opponent
+//			else if (score<0 && score>closestOpponent) {
+//				// System.out.println("Opponent score updating to "+score);
+//				closestOpponent = score;
+//			}
+//		}
+//		// compare closest player and opponent
+//		if (closestPlayer==Integer.MAX_VALUE && closestOpponent==Integer.MIN_VALUE) {
+//			// no players found
+//			return 0;
+//		}
+//		else if (closestPlayer!=Integer.MAX_VALUE && Math.abs(closestPlayer)<Math.abs(closestOpponent)) {
+//			// player closer
+//			return closestPlayer;
+//		}
+//		else if (closestOpponent!=Integer.MIN_VALUE && Math.abs(closestOpponent)<Math.abs(closestPlayer)) {
+//			// opponent closer
+//			return closestOpponent;
+//		}
+//		else {
+//			// both are equal distance
+//			return 0;
+//		}
+//	}
+//	
+//	public ArrayList<ArrayList<Integer>> getDirectTiles(Board_v2 board, ArrayList<Integer> position) {
+//		// create list to store empty tiles
+//		ArrayList<ArrayList<Integer>> directTiles = new ArrayList<ArrayList<Integer>>();
+//		// loop through directly reachable empty tiles along straight lines
+//		for (int count=0, dx=1, dy=1, row=position.get(0)+dy, col=position.get(1)+dx; count<8; row+=dy, col+=dx) {
+//			// check if empty tile
+//			if (board.getTile(row,col)==Board_v2.EMPTY) {
+//				// add tile to list
+//				ArrayList<Integer> newTile = new ArrayList<Integer>();
+//				newTile.add(row);
+//				newTile.add(col); 
+//				directTiles.add(newTile); 
+//				// continue to next tile in line
+//				continue;
+//			}
+//			// check if queen before moving to next line
+//			if (board.getTile(row,col)!=Board_v2.OUTOFBOUNDS && board.getTile(row,col)!=Board_v2.ARROW) {
+//				// add tile to list
+//				ArrayList<Integer> newTile = new ArrayList<Integer>();
+//				newTile.add(row);
+//				newTile.add(col); 
+//				directTiles.add(newTile);
+//			}
+//			// define new line -> updated order of lines, doing diagonals first
+//			switch (count++) {
+//			case 0: dx=-1; dy=1; break;
+//			case 1: dx=-1; dy=-1; break;
+//			case 2: dx=1; dy=-1; break;
+//			case 3: dx=1; dy=0; break;
+//			case 4: dx=0; dy=1; break;
+//			case 5: dx=-1; dy=0; break;
+//			case 6: dx=0; dy=-1; break;
+//			case 7: dx=1; dy=1; break;
+//			}
+//			// reset to start of line
+//			row = position.get(0);
+//			col = position.get(1);
+//		}
+//		// return list of empty tiles
+//		return directTiles;
+//	}
+//	
+//	/**
+//	 * Final attempt before mock tournament
+//	 * Use adjacent tiles method to closest queen
+//	 * Loop through rows of tree until queen found
+//	 * finish row to check if there are other queens at same depth
+//	 * 
+//	 * currently is just adding score for first queen found, so if 2 queens are equal distances away then 
+//	 * @param board
+//	 * @return
+//	 */
+//	public int tileOwnershipHeuristic_v4(Board_v2 board) {
+//		// var to hold total score
+//		int totalScore = 0;
+//		// loop through each space on board
+//		for (int row=1; row<11; row++) {
+//			for (int col=1; col<11; col++) {
+//				// System.out.println("Analysing tile "+row+","+col);
+//				// create position of closest queen
+//				ArrayList<Integer> closestQueen = null;
+//				// create queue 
+//				ArrayList<ArrayList<Integer>> queue = new ArrayList<ArrayList<Integer>>();
+//				// create array to hold if tiles are already checked
+//				boolean[][] checked = new boolean[11][11];
+//				// initialize row counter
+//				int rowIdx = 0, nodeCount = 0;
+//				// create bool for if queen is found -> use to finish row of tree then leave
+//				boolean queenFound = false;
+//				// add current tile to initialize queue
+//				ArrayList<Integer> initialPosition = new ArrayList<Integer>();
+//				initialPosition.add(row);
+//				initialPosition.add(col);
+//				queue.add(initialPosition);
+//				// loop through queue (breadth first search) 
+//				while (queue.size()>0) {
+//					// System.out.println("Queue size is "+queue.size());
+//					// remove first node from queue to look at
+//					ArrayList<Integer> position = queue.remove(0);
+//					// System.out.println("Looking at tile "+position);
+//					// check if outofbounds or arrow
+//					if (board.getTile(position)==Board_v2.OUTOFBOUNDS || board.getTile(position)==Board_v2.ARROW) {
+//						// move to next item in list
+//						continue;
+//					}
+//					// check if queen
+//					else if (board.getTile(position)==Board_v2.BLACK || board.getTile(position)==Board_v2.WHITE) {
+//						// check if queen already found this row
+//						if (queenFound) {
+//							// check if queens are different color
+//							if (board.getTile(closestQueen)!=board.getTile(position)) {
+//								// 2 queens are equally close to tile -> neither is closer
+//								closestQueen = null;
+//								break;
+//							}
+//						}
+//						// update closestqueen to first found in row
+//						closestQueen = position;
+//						// mark that queen was found
+//						queenFound = true;
+//					}
+//					// check if already checked
+//					else if (checked[position.get(0)][position.get(1)]) {
+//						// dont look into
+//						continue;
+//					}
+//					// mark current tile as checked
+//					checked[position.get(0)][position.get(1)] = true;
+//					// get adjacent tiles to current tile
+//					ArrayList<ArrayList<Integer>> adjacentTiles = board.getAdjacentTiles(position);
+//					// loop through adjacent tiles
+//					for (ArrayList<Integer> adjacentTile : adjacentTiles) {
+//						// add all adjacent tiles to queue
+//						queue.add(adjacentTile);
+//					}
+//					// increment tracker vars
+//					nodeCount++;
+//					// check if entering next row of tree
+//					if (nodeCount>=4*((int)Math.pow(rowIdx+1, 2)-(int)Math.pow(rowIdx, 2)-1)) {
+//						// check if queen found-> dont start next row
+//						if (queenFound) {
+//							break;
+//						}
+//						// reset trackers for next row
+//						rowIdx++;
+//						nodeCount = 0;
+//					}
+//				}
+//				// determine which color closest queen is and increase/decrease score accordingly
+//				if (closestQueen==null) {
+//					// neither color queen
+//					// System.out.println("Tile "+row+","+col+" is closer to neither queen");
+//				}
+//				else if (board.getTile(closestQueen)==player) {
+//					totalScore++;
+//					// System.out.println("Tile "+row+","+col+" is closest to "+board.getPlayerColorString(player));
+//				}
+//				else if (board.getTile(closestQueen)==opponent) {
+//					totalScore--;
+//					// System.out.println("Tile "+row+","+col+" is closest to "+board.getPlayerColorString(opponent));
+//				}
+//				// System.out.println("Total score is now "+totalScore);
+//			}
+//		}
+//		// return total score
+//		// System.out.println("Total score found = "+totalScore);
+//		return totalScore;
+//	}
+//	
+
 	
 	
 	//-- ISOLATED QUEENS TECHNIQUE METHODS --//
@@ -1151,6 +1265,7 @@ public class SmartAI extends Player {
 	public boolean isTrapped(Board_v2 board, ArrayList<Integer> queen) {
 		// check if any tiles to move to
 		if (board.getDirectEmptyTiles(queen).isEmpty()) {
+			System.out.println("Queen at "+queen+" is trapped");
 			return true;
 		}
 		return false;

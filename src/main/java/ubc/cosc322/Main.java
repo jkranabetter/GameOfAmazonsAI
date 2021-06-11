@@ -14,11 +14,12 @@ public class Main {
 		Player aiBlack = new SmartAI(Board_v2.BLACK, board);
 		Player aiWhite = new Opponent(Board_v2.WHITE, board);
 		
+		// testing heuristics
 //		if (aiBlack instanceof SmartAI) {
-//			((SmartAI) aiBlack).tileOwnershipHeuristic_v4(board);
+//			((SmartAI) aiBlack).tileOwnershipHeuristic_v5(board);
 //		}
 //		if (aiWhite instanceof SmartAI) {
-//			((SmartAI) aiWhite).tileOwnershipHeuristic_v4(board);
+//			((SmartAI) aiWhite).tileOwnershipHeuristic_v5(board);
 //			return;
 //		}
 		
@@ -27,7 +28,7 @@ public class Main {
 		System.out.println(board);
 		
 		// create player tracker
-		int player = Board_v2.BLACK; // switches from black to white and back untill win
+		int player = Board_v2.BLACK; // switches from black to white and back until win
 		
 		// timing fields
 		long start, end, duration;
