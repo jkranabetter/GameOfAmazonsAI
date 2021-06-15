@@ -9,7 +9,9 @@ public class Opponent extends SmartAI {
 		// determine which heuristic functions need to be called
 		int score = 0;
 		
-		score = this.tileOwnershipHeuristic_v5(board);
+		score = this.totalActionsHeuristic(board);
+		// score = this.tileOwnershipHeuristic_v5(board);
+		// score = (int) ( 1 * this.totalActionsHeuristic(board) + 100 * this.tileOwnershipHeuristic_v5(board) );
 		
 		// System.out.println("Gave score of " + score);
 		return score;

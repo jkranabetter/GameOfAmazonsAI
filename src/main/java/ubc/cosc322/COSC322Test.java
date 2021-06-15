@@ -125,6 +125,7 @@ public class COSC322Test extends GamePlayer{
 				board.applyAction(this.ai.getColorInt(), queenCurrent, queenMoved, arrow);
 				board.outputActionToConsole(queenCurrent, queenMoved, arrow);
 				System.out.println(board);
+				System.out.println("Waiting for opponent initial action");
 				this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
 				this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
 			}
@@ -132,6 +133,7 @@ public class COSC322Test extends GamePlayer{
 				// create white ai
 				System.out.println("Creating White AI");
 				this.ai = new SmartAI(Board_v2.WHITE, this.board);
+				System.out.println("Waiting for opponent initial action");
 			}
 			
 		}
@@ -159,6 +161,8 @@ public class COSC322Test extends GamePlayer{
 			
 			// determine if player has lost
 			if (board.checkLose(this.ai.getColorInt())==false) {
+				// output turn count
+				System.out.println("\nTurn: "+board.turnCount);
 				// determine action
 				System.out.println("Player is " + board.getPlayerColorString(ai.getColorInt()));
 				System.out.println("Determining player action");
@@ -171,6 +175,7 @@ public class COSC322Test extends GamePlayer{
 				board.applyAction(this.ai.getColorInt(), queenCurrent, queenMoved, arrow);
 				board.outputActionToConsole(queenCurrent, queenMoved, arrow);
 				System.out.println(board);
+				System.out.println("Waiting for opponent action");
 				this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
 				this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
 			}
