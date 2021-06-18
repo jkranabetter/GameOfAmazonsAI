@@ -2,6 +2,10 @@ package ubc.cosc322;
 
 import java.util.ArrayList;
 
+/*
+ * Testing file in order to run AI against itself without needing to interact with server
+ */
+
 public class Main {
 	
 	public static void main(String[] args) {
@@ -69,15 +73,12 @@ public class Main {
 			// display new board
 			System.out.println(board);
 			
-//			// display regions
+//			// display regions -> commented out due to regions code not working
 //			if (board.regions.size()>0) {
 //				for (Region region : board.regions) {
 //					System.out.println("Region "+region.id+" has "+region.getQueensCount(board, Board_v2.BLACK)+" B's and "+region.getQueensCount(board, Board_v2.WHITE)+" W's in "+region.regionTiles.size()+" tiles and "+region.gatewayTiles.size()+" gates");
 //				}
 //			}
-			
-			
-			
 			
 			// switch player
 			player = (player==Board_v2.BLACK) ? (Board_v2.WHITE) : (Board_v2.BLACK);
@@ -95,7 +96,7 @@ public class Main {
 			System.out.println("Somehow nobody wins");
 		}
 		
-//		// testing regions
+//		// Regions specific tests
 //		
 //		// create board
 //		Board_v2 board = new Board_v2();

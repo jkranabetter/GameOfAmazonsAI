@@ -2,6 +2,12 @@ package ubc.cosc322;
 
 import java.util.ArrayList;
 
+/*
+ * Class only used in regions code
+ * Since regions code did not work right, it was commented out for the tournament
+ * This file also commented out although technically not required to
+ */
+
 public class Region {
 //	//-- FIELDS --//
 //	// static int nextIdentifier = 1;

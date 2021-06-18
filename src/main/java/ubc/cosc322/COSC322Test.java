@@ -116,16 +116,30 @@ public class COSC322Test extends GamePlayer{
 				this.ai = new SmartAI(Board_v2.BLACK, this.board);
 				// determine black first move
 				System.out.println("Determining Black AI initial action");
+				
+				// use ai to do first move
 				ArrayList<ArrayList<Integer>> action = ai.getAction();
 				ArrayList<Integer> queenCurrent = action.get(0);
 				ArrayList<Integer> queenMoved = action.get(1);
 				ArrayList<Integer> arrow = action.get(2);
+				
+//				// auto choose first move -> never tested, so not used
+//				ArrayList<Integer> queenCurrent = new ArrayList<Integer>();
+//				queenCurrent.add(10);
+//				queenCurrent.add(4);
+//				ArrayList<Integer> queenMoved = new ArrayList<Integer>();
+//				queenMoved.add(4);
+//				queenMoved.add(4);
+//				ArrayList<Integer> arrow = new ArrayList<Integer>();
+//				arrow.add(4);
+//				arrow.add(8);
+				
 				// send action to 3 places
 				System.out.println("Sending Black AI initial action");
 				board.applyAction(this.ai.getColorInt(), queenCurrent, queenMoved, arrow);
 				board.outputActionToConsole(queenCurrent, queenMoved, arrow);
 				System.out.println(board);
-				System.out.println("Waiting for opponent initial action");
+				System.out.println("Waiting for opponent initial action"); // include here to not cause delay after gameclient recieves action
 				this.gameClient.sendMoveMessage(queenCurrent, queenMoved, arrow);
 				this.gamegui.updateGameState(queenCurrent, queenMoved, arrow);
 			}

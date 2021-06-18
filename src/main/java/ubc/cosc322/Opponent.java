@@ -1,5 +1,10 @@
 package ubc.cosc322;
 
+/*
+ * Copies everything from SmartAI class but overwrites to test changes
+ * Used for testing our AI against a slightly different version of itself
+ */
+
 public class Opponent extends SmartAI {
 	public Opponent(int player, Board_v2 board) {
 		super(player,board);

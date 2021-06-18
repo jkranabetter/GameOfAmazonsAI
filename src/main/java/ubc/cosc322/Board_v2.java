@@ -3,6 +3,12 @@ package ubc.cosc322;
 import java.util.ArrayList;
 
 public class Board_v2 {
+	/**
+	 * Many lines of code commented out in this class
+	 * This is due to the regions heuristic and related coding not working as it should
+	 * In order to not waste time on detecting regions, all code related to them was commented out
+	 */
+	
 	//-- CONSTANTS --//
 	public static final int EMPTY = 0;
 	public static final int BLACK = 1;
@@ -10,6 +16,7 @@ public class Board_v2 {
 	public static final int ARROW = 3;
 	public static final int OUTOFBOUNDS = 4;
 	
+	// REGION VALUES, COMMENTED OUT DUE TO REGIONS CODE NOT FUNCTIONING CORRECTLY
 //	public static final int GATEWAY = -1; // region tile value, empty with certain adjacent walls
 //	public static final int WALL = -2; // region tile value , arrow or out of bounds
 	
@@ -23,12 +30,13 @@ public class Board_v2 {
 	
 	int turnCount;
 	
+	// REGION VALUES, COMMENTED OUT DUE TO REGIONS CODE NOT FUNCTIONING CORRECTLY
 //	protected int[][] regionTiles; // holds identifier of region this tile belongs to, -1 for arrows
 //	ArrayList<Region> regions;
 	
 	//-- CONSTRUCTORS --//
 	/**
-	 * Create board with manual inputted queen locations
+	 * Create board with manually inputed initial queen locations
 	 */
 	public Board_v2() {
 		// initialize tiles to empty -> loop not technically needed since Board_v2.EMPTY==0
@@ -51,6 +59,7 @@ public class Board_v2 {
 		// initialize turn count
 		this.turnCount = 0;
 		
+		// REGION VALUES, COMMENTED OUT DUE TO REGIONS CODE NOT FUNCTIONING CORRECTLY
 //		// create lists for region identifiers and regions themselves
 //		this.regionTiles = new int[11][11];
 //		this.regions = new ArrayList<Region>();
@@ -70,7 +79,7 @@ public class Board_v2 {
 	
 	/**
 	 * Create board from server message details in game action start
-	 * NOT IMPLEMENTED but turns out not needed
+	 * NOT IMPLEMENTED but turns out not needed as manual inpt works just the same
 	 * @param gameState list recieved from server message details 
 	 */
 	public Board_v2(ArrayList<Integer> gameState) {
@@ -83,8 +92,11 @@ public class Board_v2 {
 	 */
 	public Board_v2(Board_v2 original) {
 		this.tiles = new int[11][11];
+		// REGION VALUES, COMMENTED OUT DUE TO REGIONS CODE NOT FUNCTIONING CORRECTLY
 //		this.regionTiles = new int[11][11];
 //		this.regions = new ArrayList<Region>();
+		
+		// clone passed board
 		this.clone(original);
 	}
 	
@@ -146,7 +158,7 @@ public class Board_v2 {
 		for (int row=1; row<11; row++) {
 			for (int col=1; col<11; col++) {
 				this.setTile(original.getTile(row,col), row, col);
-//				this.setTileRegion(original.getTileRegion(row,col), row, col);
+//				this.setTileRegion(original.getTileRegion(row,col), row, col); 
 			}
 		}
 //		// copy regions
@@ -287,7 +299,7 @@ public class Board_v2 {
 	
 	/**
 	 * Check if passed player has lost
-	 * This is called by COSC322TEST file before having ai determine new action
+	 * This is called by COSC322TEST file before having ai determine new action so that AI never returns null for an action
 	 * @param player player to check 
 	 * @return true if passed player has lost, false otherwise
 	 */
@@ -313,6 +325,7 @@ public class Board_v2 {
 	/**
 	 * Update board with passed action
 	 * This is called by COSC322TEST file to update our version of board
+	 * Tests validity of action and outputs if invalid, updates board none the less
 	 * @param player player performing action
 	 * @param queenCurrent position of queen to move
 	 * @param queenMoved position for queen to move to
@@ -338,6 +351,13 @@ public class Board_v2 {
 		this.turnCount++;
 	}
 	
+	/**
+	 * Output action to console
+	 * Called by COSC322TEST file to help see what the previous action was, by player or opponent
+	 * @param queenCurrent
+	 * @param queenMoved
+	 * @param arrow
+	 */
 	public void outputActionToConsole(ArrayList<Integer> queenCurrent, 
 										ArrayList<Integer> queenMoved, 
 										ArrayList<Integer> arrow) {
@@ -345,7 +365,7 @@ public class Board_v2 {
 	}
 	
 	/**
-	 * get color of player in string format
+	 * get color of player in string format for console output purposes
 	 * @param player player color in int format
 	 * @return player color in string format
 	 */
@@ -362,8 +382,8 @@ public class Board_v2 {
 	 * Get representation of board in string format
 	 */
 	public String toString() {
-		boolean showingRegions = false; // change to true if wanting to show region ids
-		// check if not needing double digits
+		boolean showingRegions = false; // change to true if wanting to show region ids on empty tiles
+		
 		String output = "\nState of Board: \n";
 		if (showingRegions==false) {
 			output += "  -   -   -   -   -   -   -   -   -   -  \n";
@@ -385,6 +405,7 @@ public class Board_v2 {
 			// output += "  1   2   3   4   5   6   7   8   9   10 \n";
 			return output;
 		}
+//		// check if not needing double digits size board
 //		else if (this.regions.size()<10) {
 //			output += "  -   -   -   -   -   -   -   -   -   -  \n";
 //			for (int row=10; row>=1; row--) {
@@ -413,6 +434,7 @@ public class Board_v2 {
 //			// output += "  1   2   3   4   5   6   7   8   9   10 \n";
 //			return output;
 //		}
+//		// output larger board to hold double digit region ids
 //		else {
 //			output += "  --   --   --   --   --   --   --   --   --   --  \n";
 //			for (int row=10; row>=1; row--) {
@@ -481,6 +503,17 @@ public class Board_v2 {
 		// return filled list of 8 adjacent tiles
 		return adjacentTiles; 
 	}
+	
+	
+	/**
+	 * Remainder of class was not in use for tournament as it did not work correctly.
+	 * However lots of effort went into this section so it was left in the class as comments.
+	 * Basic structure involved a second array of tiles that held region ids or gateway value to show it was a connection between gateways
+	 * Numerous methods used to split up the boards regions as arrows were placed dividing the board
+	 * Regions were divided by arrows forming walls as well as empty tiles with walls on either side where if tile was blocked by arrow
+	 * it would close the wall, these tiles were known as gateways and having a queen sitting in one was meant to be good
+	 * When single tile wide hallways were made, they would all be gateways and this is where problems would arise in region detection
+	 */
 	
 	
 //	//-- REGION METHODS ATTEMPT 2 --//

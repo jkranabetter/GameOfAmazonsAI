@@ -2,6 +2,11 @@ package ubc.cosc322;
 
 import java.util.ArrayList;
 
+/*
+ * Base class for both RandomAI and SmartAI
+ * Includes necessary methods in order to interact with COSC322TEST file and our testing Main file
+ */
+
 public abstract class Player {
 	//-- FIELDS --//
 	int player, opponent;
